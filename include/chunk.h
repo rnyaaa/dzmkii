@@ -15,7 +15,8 @@ struct Chunk
     std::vector<u8> material_indices;
 
     void setMatIndexByPos(glm::vec3 pos, u8 mat);
-    Chunk gen_chunk(glm::vec2 chunk_start);
+
+    Chunk(glm::vec2 chunk_start);
 };
 
 #endif

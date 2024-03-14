@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 project(DZMKII)
 
@@ -22,8 +22,8 @@ FetchContent_MakeAvailable(glm)
 find_package(SDL2 CONFIG REQUIRED)
 
 file(GLOB source_files CONFIGURE_DEPENDS
-            "include/*.h"
-            "src/*.cpp"
+        include/*.h
+        src/*.cpp
     )
 
 add_executable(DZMKII 
@@ -33,6 +33,7 @@ add_executable(DZMKII
 target_include_directories(DZMKII
     PRIVATE
     include/
+    include/3rdparty
     ${SDL2_INCLUDE_DIRS}
     ${GLM_INCLUDE_DIRS}
     libs/assimp/include

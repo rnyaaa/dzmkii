@@ -16,17 +16,24 @@
 
 #include <simd/simd.h>
 
+#include "chunk.h"
 #include "common.h"
+#include "logger.h"
 #include "renderer.h"
 #include "camera.h"
+#include "asset.h"
 
 #define SDL_ERR(msg) \
     printf("[ERROR] %s\n\t%s\n", msg, SDL_GetError())
 
 void movement(Camera &camera, const u8 *key_state);
 
+
 int main(int argc, char *argv[])
 {
+    // TODO: Set log level with option or defines
+    Log::setLogLevel(Log::LogLevel::VERBOSE);
+
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -36,8 +43,8 @@ int main(int argc, char *argv[])
             "SDL2Test",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            640,
-            480,
+            640 * 2,
+            480 * 2,
             SDL_WINDOW_ALLOW_HIGHDPI
         );
 
@@ -48,38 +55,30 @@ int main(int argc, char *argv[])
     std::stringstream basic_shader_stream;
     basic_shader_stream << basic_shader_file.rdbuf();
 
-    Renderer renderer(window, basic_shader_stream.str());
+    DZRenderer renderer(
+            window, 
+            basic_shader_stream.str()
+        );
 
-    std::vector<Mesh> meshes = {
-        Mesh(
-                renderer.device, 
-                {
-                    simd::float3 { -0.8f,  0.8f, 0.0f },
-                    simd::float3 {  0.0f, -0.8f, 0.0f },
-                    simd::float3 { +0.8f,  0.8f, 0.0f }
-                }, 
-                {
-                    simd::float3 {  1.0, 0.3f, 0.2f },
-                    simd::float3 {  0.8f, 1.0, 0.0f },
-                    simd::float3 {  0.8f, 0.0f, 1.0 }
-                }
-            ),
-        Mesh(
-                renderer.device, 
-                {
-                    simd::float3 { -0.3f,  0.6f, 0.1f },
-                    simd::float3 {  0.5f, -0.8f, 0.1f },
-                    simd::float3 { +0.2f,  0.4f, 0.1f }
-                }, 
-                {
-                    simd::float3 {  1.0, 0.3f, 0.2f },
-                    simd::float3 {  0.8f, 0.0, 0.0f },
-                    simd::float3 {  0.8f, 0.8f, 1.0 }
-                }
-            )
+    AssetManager ass_man;
+
+    ass_man.addSearchDirectory("resources");
+
+    std::optional<TextureData> td = ass_man.getTexture("default_ground.png");
+
+    DZTexture tex = renderer.registerTexture(td.value());
+
+    Chunk chunker(glm::vec2(0.0f,0.0f));
+
+    std::vector<MeshData> mesh_datas = {
+        MeshData::genMeshFromTiles(chunker.tiles),
     };
 
+    std::vector<DZMesh> meshes
+        = renderer.registerMeshes(mesh_datas);
+
     Camera camera;
+    Sun sun({1.0f, 1.0f, 1.0f});
 
     const u8 *key_state = SDL_GetKeyboardState(nullptr);
 
@@ -94,11 +93,11 @@ int main(int argc, char *argv[])
             {
                 if(e.wheel.y > 0)
                 {
-                    camera.zoom(1.0f);
+                    camera.zoom(-1.0f);
                 }
                 else 
                 {
-                    camera.zoom(-1.0f);
+                    camera.zoom(1.0f);
                 }
             }
         }
@@ -110,7 +109,6 @@ int main(int argc, char *argv[])
 
         movement(camera, key_state);
 
-
         s32 window_width, window_height;
         SDL_GetWindowSize(window, &window_width, &window_height);
         glm::vec2 screen_dim(
@@ -118,7 +116,12 @@ int main(int argc, char *argv[])
                 (float) (window_height)
             );
 
-        renderer.draw(camera, screen_dim, meshes);
+        DZUniforms uniforms = {
+            camera.getCameraData(screen_dim),
+            sun.dir,
+        };
+        renderer.updateUniforms(uniforms);
+        renderer.draw(meshes);
     }
 
 quit:

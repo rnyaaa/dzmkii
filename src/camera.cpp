@@ -28,7 +28,7 @@ glm::mat4 Camera::getProjectionMatrix(glm::vec2 screen_dim) const
             screen_dim.x /  this->zoom_level,
             screen_dim.y / -this->zoom_level,
             screen_dim.y /  this->zoom_level,
-            -1000.f,
+            -10000.f,
             1000.f
         );
 }

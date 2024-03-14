@@ -5,9 +5,12 @@
 
 struct Vertex
 {
-    glm::vec3 pos;
-    glm::vec3 normal;
-    glm::vec2 texcoord;
+    glm::vec4 pos;
+    glm::vec4 normal;
+    glm::vec4 color;
+
+    Vertex();
+    Vertex(glm::vec3 pos, glm::vec3 normal, glm::vec3 color);
 };
 
 #endif

@@ -1,5 +1,8 @@
 #include "chunk.h"
 
+#include <cstdlib>
+#include <random>
+
 void Chunk::setMatIndexByPos(glm::vec3 pos, u8 mat)
 {
     // GET CHUNK LOC, NORMALIZE
@@ -10,9 +13,13 @@ void Chunk::setMatIndexByPos(glm::vec3 pos, u8 mat)
     this->material_indices[index] = mat;
 }
 
-Chunk gen_chunk(glm::vec2 chunk_start)
+Chunk::Chunk(glm::vec2 chunk_start)
 {
-    Chunk chunk;
+    
+    std::random_device rd;
+    std::uniform_real_distribution<float> dis(0.0f, 1.0f); 
+    float randomFloat = 0.0;
+
     const f32 chunk_width = 100.0f;
     const f32 tile_width = chunk_width / Chunk::TILES_PER_SIDE;
     const f32 startx = chunk_start.x - chunk_width/2.0f;
@@ -69,10 +76,10 @@ Chunk gen_chunk(glm::vec2 chunk_start)
             normals[(i+1) * Chunk::TILES_PER_SIDE + j] += normal2;
             normals[(i+1) * Chunk::TILES_PER_SIDE + (j+1)] += normal2;
 
-            tile.vertices[0] = {corners[0], glm::vec3(0.0f)};
-            tile.vertices[1] = {corners[1], glm::vec3(0.0f)};
-            tile.vertices[2] = {corners[2], glm::vec3(0.0f)};
-            tile.vertices[3] = {corners[3], glm::vec3(0.0f)};
+            tile.vertices[0] = {corners[0], glm::vec4(0.0f), glm::vec4(1.0)};
+            tile.vertices[1] = {corners[1], glm::vec4(0.0f), glm::vec4(1.0)};
+            tile.vertices[2] = {corners[2], glm::vec4(0.0f), glm::vec4(1.0)};
+            tile.vertices[3] = {corners[3], glm::vec4(0.0f), glm::vec4(1.0)};
             
             tiles.push_back(tile);
         }
@@ -83,20 +90,31 @@ Chunk gen_chunk(glm::vec2 chunk_start)
     {
         for (u32 j = 0; j < Chunk::TILES_PER_SIDE; j++)
         {
-            tiles[i * Chunk::TILES_PER_SIDE + j].vertices[0].normal = glm::normalize(normals[i     * Chunk::TILES_PER_SIDE + j    ]);
-            tiles[i * Chunk::TILES_PER_SIDE + j].vertices[1].normal = glm::normalize(normals[i     * Chunk::TILES_PER_SIDE + (j+1)]);
-            tiles[i * Chunk::TILES_PER_SIDE + j].vertices[2].normal = glm::normalize(normals[(i+1) * Chunk::TILES_PER_SIDE + (j+1)]);
-            tiles[i * Chunk::TILES_PER_SIDE + j].vertices[3].normal = glm::normalize(normals[(i+1) * Chunk::TILES_PER_SIDE + j    ]);
+             tiles[i * Chunk::TILES_PER_SIDE + j].vertices[0].normal = glm::vec4(glm::normalize(normals[i     * Chunk::TILES_PER_SIDE + j    ]), 0.0f);
+             tiles[i * Chunk::TILES_PER_SIDE + j].vertices[1].normal = glm::vec4(glm::normalize(normals[i     * Chunk::TILES_PER_SIDE + (j+1)]), 0.0f);
+             tiles[i * Chunk::TILES_PER_SIDE + j].vertices[2].normal = glm::vec4(glm::normalize(normals[(i+1) * Chunk::TILES_PER_SIDE + (j+1)]), 0.0f);
+             tiles[i * Chunk::TILES_PER_SIDE + j].vertices[3].normal = glm::vec4(glm::normalize(normals[(i+1) * Chunk::TILES_PER_SIDE + j    ]), 0.0f);
         }
     }
 
-    for (u32 i = 0; i < Chunk::TILES_PER_SIDE * Chunk::TILES_PER_SIDE; i++)
+    // Teture
+    for(auto tile : this->tiles)
     {
-        material_indices[i] = 0;
+
+        for (u32 i = 0; i < 4; i++)
+        {
+            f32 noise = noise_scale * perlin.octave2D(tile.vertices[i].pos.x * perlin_scale, tile.vertices[i].pos.y * perlin_scale, octaves);
+            if(noise > 0.5)
+            {
+                setMatIndexByPos(tile.vertices[i].pos, 1);
+            } else {
+                setMatIndexByPos(tile.vertices[i].pos, 0);
+            }
+        }
+
     }
-    chunk.tiles = tiles;
-    chunk.material_indices = material_indices;
-    return chunk;
+    this->tiles = tiles;
+    this->material_indices = material_indices;
 }
 
 
