@@ -5,7 +5,9 @@ struct v2f
 {
     float4 position [[position]];
     float4 world_position;
-    float3 normal;
+    float3 T;
+    float3 B;
+    float3 N;
     half3 color;
 };
 
@@ -13,7 +15,10 @@ struct Vertex
 {
     float3 position;
     float3 normal;
+    float3 tangent;
+    float3 bitangent;
     float3 color;
+    float2 uv;
 };
 
 struct CameraData
@@ -22,40 +27,47 @@ struct CameraData
     float4x4 projection_matrix;
 };
 
-struct Uniforms
+struct GlobalUniforms
 {
     CameraData camera;
     float3 sun_dir;
 };
 
+struct ModelUniforms
+{
+    float4x4 model_matrix;
+    bool textured;
+    bool lit;
+};
+
 v2f vertex vertexMain( 
         uint vertex_id [[ vertex_id ]],
-        device const Vertex *vertices [[ buffer(0) ]],
-        constant Uniforms &uniforms [[ buffer(1) ]]
+        constant GlobalUniforms &global_uniforms [[ buffer(0) ]],
+        device const Vertex *vertices [[ buffer(1) ]],
+        constant ModelUniforms  &local_uniforms  [[ buffer(2) ]]
     )
 {
     v2f o;
-    o.position = uniforms.camera.projection_matrix * uniforms.camera.view_matrix * float4( vertices[vertex_id].position, 1.0 );
-    o.world_position = float4(vertices[vertex_id].position, 1.0);
+    o.world_position = local_uniforms.model_matrix * float4(vertices[vertex_id].position, 1.0);
+
+    o.position = global_uniforms.camera.projection_matrix * global_uniforms.camera.view_matrix * o.world_position;
+
     o.color = half3 ( vertices[vertex_id].color );
-    o.normal = vertices[vertex_id].normal;
+
+    o.T = vertices[vertex_id].tangent.xyz;
+    o.B = vertices[vertex_id].bitangent.xyz;
+    o.N = vertices[vertex_id].normal.xyz;
+
     return o;
-}
+};
 
 half4 fragment fragmentMain( 
         v2f in [[stage_in]],
-        constant Uniforms &uniforms [[ buffer(0) ]],
-        texture2d<half> color_texture [[ texture(0) ]],
+        constant GlobalUniforms &global_uniforms [[ buffer(0) ]],
+        constant ModelUniforms &local_uniforms [[ buffer(1) ]],
+        texture2d_array<half> terrain_textures [[ texture(0) ]],
         sampler texture_sampler [[ sampler(0) ]]
     )
 {
-    const half3 texture = 
-        half3(color_texture.sample(texture_sampler, in.world_position.xy / 8.0));
-
-    float3 sun_dir = normalize(uniforms.sun_dir);
-    float sun_diff = max(dot(in.normal, sun_dir), 0.0);
-    half3 sun_color = half3(1.0, 0.9, 0.7);
-    half3 diffuse = 1.0 * sun_color * sun_diff * texture + 0.0 * texture;
-
-    return half4( diffuse, 1.0 );
+    return half4(0.5, 0.5, 0.5, 1.0 );
 }

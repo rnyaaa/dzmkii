@@ -1,0 +1,27 @@
+Terrain
+-> Chunk -> tiles
+         -> material index { empty }
+            |
+            | ? Microbiome Generation here ?
+            |
+    Texture Generation
+        - Smaller noise scale/perlin
+        - Different textures depending on distance from origin
+            - Ordinary Nature close 
+            - Aberrations further 
+            - Gradient of probability between the biome transitions
+
+        -> material index { filled }
+           |
+           |
+           |
+    Foliage Generation
+        - Even smaller noise scale/perlin
+        - Different foliage depending on underlying material index
+
+        -> foliage index { filled }
+
+
+            
+
+

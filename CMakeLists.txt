@@ -2,9 +2,17 @@ cmake_minimum_required(VERSION 3.26)
 
 set(CMAKE_CXX_STANDARD 20)
 
-project(DZMKII)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+set(CMAKE_CXX_FLAGS "")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+project(DZMKII)
 
 add_subdirectory(libs/metal-cmake)
 add_subdirectory(libs/assimp)

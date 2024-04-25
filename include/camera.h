@@ -1,5 +1,5 @@
 #include <glm/glm.hpp>
-
+#include <array>
 #include "common.h"
 
 #ifndef _CAMERA_H
@@ -24,11 +24,13 @@ struct Camera
 
     glm::mat4 getViewMatrix() const;
     glm::mat4 getProjectionMatrix(glm::vec2 screen_dim) const;
-    void move(glm::vec3 direction);
-    void zoom(f32 change);
-
+    glm::vec3 getViewDirection() const;
+    std::array<glm::vec3, 4> getFrustrumBounds(glm::vec2 screen_dim) const; 
 
     CameraData getCameraData(glm::vec2 screen_dim) const;
+
+    void move(glm::vec3 direction);
+    void zoom(f32 change);
 
     Camera();
 

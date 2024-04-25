@@ -9,7 +9,6 @@
 #include <simd/simd.h>
 
 #include "common.h"
-#include "tile.h"
 #include "vertex.h"
 
 #ifndef _MESH_H
@@ -18,10 +17,21 @@
 struct MeshData
 {
     std::vector<Vertex> vertices;
+    // Could be reasonably be u16, need to change index type in renderer
     std::vector<u32> indices;
 
-    static MeshData genMeshFromTiles(std::vector<Tile> tiles);
-    //static std::optional<std::vector<MeshData>> importMeshesFromFile(const std::string &path);
+    static MeshData UnitSquare()
+    {
+        return {
+            {
+                Vertex().withPos(glm::vec3(0.0f, 0.0f, 0.0f)),
+                Vertex().withPos(glm::vec3(1.0f, 0.0f, 0.0f)),
+                Vertex().withPos(glm::vec3(1.0f, 1.0f, 0.0f)),
+                Vertex().withPos(glm::vec3(0.0f, 1.0f, 0.0f)),
+            },
+            { 0, 1, 2, 0, 3, 2 }
+        };
+    }
 };
 
 #endif // _MESH_H
