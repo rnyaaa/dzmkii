@@ -23,11 +23,10 @@ MeshData genMeshFromTiles(std::vector<Tile> tiles)
 
     return MeshData { 
         vertices,
-        {}
+        {},
+        PrimitiveType::TRIANGLE
     };
 }
-
-Chunk::Chunk() {}
 
 Chunk::Chunk(
         DZRenderer &renderer, 
@@ -53,6 +52,8 @@ Chunk::Chunk(
     glm::vec3 normals[(TILES_PER_SIDE + 1) * (TILES_PER_SIDE + 1)];
 
     memset(normals, 0, sizeof(glm::vec3) * (TILES_PER_SIDE + 1) * (TILES_PER_SIDE + 1));
+    memset(navigable, 0, sizeof(char) * TILES_PER_SIDE * TILES_PER_SIDE);
+
 
     Log::verbose("\tChunk construction started...");
 
@@ -209,8 +210,19 @@ void Chunk::updateUniforms(DZRenderer &renderer, s32 chunk_index)
 Terrain::Terrain(DZRenderer &renderer, f32 chunk_size, u32 seed)
     : chunk_size { chunk_size }
     , seed { seed }
-{ 
+{
+    AssetManager ass_man;
+
+    // NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO
+    auto terrain_shader_src = *ass_man.getTextFile("shaders/terrain_shader.metal");
+    std::vector<DZShader> terrain_shaders 
+        = renderer.compileShaders(terrain_shader_src, {"vertexMain", "fragmentMain"});
+    this->terrain_pipeline 
+        = renderer.createPipeline(terrain_shaders[0], terrain_shaders[1]);
+
     this->terrain_uniform_buffer = renderer.createBufferOfSize(sizeof(MegaChunkData));
+
+    memset(this->visible.data(), 0, sizeof(Chunk*) * 9);
     Log::verbose("Terrain established"); 
 }
 
@@ -247,7 +259,7 @@ void Terrain::createChunk(DZRenderer &renderer, glm::vec2 pos_in_chunk)
     Log::verbose("\tCreating chunk...");
     Chunk chunk(renderer, origin, seed, chunk_size);
 
-    this->chunks[origin] = chunk;
+    this->chunks.emplace(origin, chunk);
 }
 
 Chunk* Terrain::getChunkFromPos(v2f pos)
@@ -255,7 +267,9 @@ Chunk* Terrain::getChunkFromPos(v2f pos)
     v2f origin = this->getChunkOriginFromPos(pos);
     if(this->chunks.contains(origin))
     {
-        return &this->chunks[origin];
+        // [] operator requires a default cosntructor for Chunk
+        // so instead of &this->chunks[origin] we have:
+        return &this->chunks.find(origin)->second;
     }
     return nullptr;
 }
@@ -386,6 +400,26 @@ void Terrain::termRender(DZTermRenderer &term, glm::vec2 pos)
             }
         }
     }
+}
+
+void Terrain::getVisible(Camera &camera)
+{
+    std::array<Chunk*, 9> new_visible;
+        for (int i = -1; i <= 1; i++)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                visible[(j+1) * 3 + (i + 1)] 
+                    = getChunkFromPos(
+                            v2f
+                            {
+                                camera.target.x + chunk_size * i,
+                                camera.target.y + chunk_size * j
+                            }
+                        );
+            }
+        }
+    visible = new_visible;
 }
 
 void Terrain::updateUniforms(DZRenderer &renderer, std::array<Chunk*, 9> visible)

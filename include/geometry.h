@@ -193,6 +193,12 @@ struct AARect2D
 
         return ret;
     }
+
+    bool containsPoint(const v2<T> &other) const
+    {
+        return other.x > this->pos.x && other.x < this->pos.x + dim.x 
+            && other.y > this->pos.u && other.y < this->pos.y + dim.y;
+    }
 };
 
 template <typename T>

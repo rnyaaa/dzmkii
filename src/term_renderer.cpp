@@ -4,9 +4,9 @@
 DZTermRenderer::DZTermRenderer(int width, int height)
     : width(width)
     , height(height)
-    , fill { Color::BLACK, Color::WHITE, '#'}
-    , stroke { Color::BLACK, Color::WHITE, '#' }
-    , text { Color::BLACK, Color::WHITE }
+    , fill { TermColor::BLACK, TermColor::WHITE, '#'}
+    , stroke { TermColor::BLACK, TermColor::WHITE, '#' }
+    , text { TermColor::BLACK, TermColor::WHITE }
     , cursor { 0,0 }
 { 
     memset(&this->buf, 0, sizeof(this->buf));
@@ -26,8 +26,8 @@ void DZTermRenderer::setDimensions(int width, int height)
     if (this->buf.bg)      free(this->buf.bg);
 
     this->buf.display = (char *)  malloc(width * height);
-    this->buf.fg      = (Color *) malloc(sizeof(Color) * width * height);
-    this->buf.bg      = (Color *) malloc(sizeof(Color) * width * height);
+    this->buf.fg      = (TermColor *) malloc(sizeof(TermColor) * width * height);
+    this->buf.bg      = (TermColor *) malloc(sizeof(TermColor) * width * height);
     this->buf.output  = (char *)  malloc(
             MAX_OUTPUT_CHAR_WIDTH * (width + 1) * height);
 }
@@ -43,14 +43,14 @@ void DZTermRenderer::moveCursor(int dx, int dy)
     this->setCursor(this->cursor.x + dx, this->cursor.y + dy);
 }
 
-void DZTermRenderer::setStroke(Color fg, Color bg, char c)
+void DZTermRenderer::setStroke(TermColor fg, TermColor bg, char c)
 {
     this->stroke.fg = fg;
     this->stroke.bg = bg;
     this->stroke.c  = c;
 }
 
-void DZTermRenderer::setFill(Color fg, Color bg, char c)
+void DZTermRenderer::setFill(TermColor fg, TermColor bg, char c)
 {
     this->fill.fg = fg;
     this->fill.bg = bg;
@@ -118,8 +118,8 @@ void DZTermRenderer::clear()
 {
     memset(this->buf.display, ' ', width * height);
     // TODO
-    memset(this->buf.fg, 0, sizeof(Color) * width * height);
-    memset(this->buf.bg, 0, sizeof(Color) * width * height);
+    memset(this->buf.fg, 0, sizeof(TermColor) * width * height);
+    memset(this->buf.bg, 0, sizeof(TermColor) * width * height);
 }
 
 void DZTermRenderer::display()
@@ -132,10 +132,10 @@ void DZTermRenderer::display()
         for (int i = 0; i < width; i++)
         {
             char c = buf.display[j * width + i];
-            Color fg = buf.fg[j * width + i];
-            Color bg = buf.bg[j * width + i];
+            TermColor fg = buf.fg[j * width + i];
+            TermColor bg = buf.bg[j * width + i];
 
-            // TODO: color
+            // TODO: TermColor
             int n = sprintf(curr, "%c", c);
             curr += n;
         }

@@ -193,7 +193,7 @@ std::vector<DZShader> DZRenderer::compileShaders(
     if (library == nullptr)
     {
         Log::error(
-                "Error initializing shader library\n\t%s\n", 
+                "Error initializing shader library\n%s\n", 
                 error->localizedDescription()->utf8String()
             );
         return {};
@@ -237,10 +237,14 @@ DZPipeline DZRenderer::createPipeline(
     {
         Log::error(
                 "Error initializing "
-                "pipeline state\n\t%s\n", 
+                "pipeline state\n%s\n", 
                 error->localizedDescription()
                     ->utf8String()
             );
+
+        pipeline_desc->release();
+
+        return DZInvalid;
     }
 
     DZPipeline ret = this->pipelines.size();
@@ -268,9 +272,31 @@ DZMesh DZRenderer::createMesh(const MeshData &mesh_data)
 
     mesh_buffers.num_elements.push_back(num_elements);
 
-    mesh_buffers.primitive_type.push_back(
-            MTL::PrimitiveType::PrimitiveTypeTriangle
-        );
+    MTL::PrimitiveType primitive_type;
+
+    switch(mesh_data.primitive_type)
+    {
+        case PrimitiveType::LINE:
+            primitive_type = MTL::PrimitiveTypeLine;
+            break;
+        case PrimitiveType::LINE_STRIP:
+            primitive_type = MTL::PrimitiveTypeLineStrip;
+            break;
+        case PrimitiveType::TRIANGLE:
+            primitive_type = MTL::PrimitiveTypeTriangle;
+            break;
+        case PrimitiveType::TRIANGLE_STRIP:
+            primitive_type = MTL::PrimitiveTypeTriangleStrip;
+            break;
+        case PrimitiveType::POINT:
+            primitive_type = MTL::PrimitiveTypePoint;
+            break;
+        default:
+            Log::error("Unknown primitive type passed to createMesh, MeshData corrupted?");
+            break;
+    }
+
+    mesh_buffers.primitive_type.push_back(primitive_type);
 
     mesh_buffers.vertex.push_back(
             newBufferFromData(mesh_data.vertices)

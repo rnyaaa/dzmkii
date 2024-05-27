@@ -4,7 +4,7 @@
 #ifndef _TERM_RENDERER_H
 #define _TERM_RENDERER_H
 
-enum class Color
+enum class TermColor
 {
     WHITE,
     BLACK,
@@ -29,9 +29,9 @@ public:
 
     void clear();
 
-    void setText(Color fg, Color bg, char c);
-    void setStroke(Color fg, Color bg, char c);
-    void setFill(Color fg, Color bg, char c);
+    void setText(TermColor fg, TermColor bg, char c);
+    void setStroke(TermColor fg, TermColor bg, char c);
+    void setFill(TermColor fg, TermColor bg, char c);
 
     void write(char *str);
     void rect(int width, int height);
@@ -40,11 +40,11 @@ public:
 private:
 
     int width, height;
-    struct { Color bg, fg; char c; } fill, stroke;
-    struct { Color bg, fg; } text;
+    struct { TermColor bg, fg; char c; } fill, stroke;
+    struct { TermColor bg, fg; } text;
     struct { int x, y; } cursor;
     struct {
-        Color *fg, *bg;
+        TermColor *fg, *bg;
         char *display;
         char *output;
     } buf;

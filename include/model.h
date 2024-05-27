@@ -16,40 +16,37 @@ struct ModelUniforms
 
 struct Model
 {
-    Transform transform;
     DZBuffer uniform_buffer;
     std::vector<DZMesh> meshes;
     bool textured;
     bool lit;
 
+    static Model fromMeshes(DZRenderer &renderer, const std::vector<DZMesh> &meshes)
+    {
+        auto uniform_buffer = 
+            renderer.createBufferOfSize(
+                sizeof(ModelUniforms), StorageMode::SHARED);
+
+        return { uniform_buffer, meshes, false, false };
+    }
+
     static Model fromMeshDatas(DZRenderer &renderer, const std::vector<MeshData> &mesh_datas)
     {
-        Model model;
+        std::vector<DZMesh> meshes;
 
         for (const auto &mesh : mesh_datas)
         {
             DZMesh dz_mesh = renderer.createMesh(mesh);
-            model.meshes.push_back(dz_mesh);
+            meshes.push_back(dz_mesh);
         }
 
-        model.transform.pos = glm::vec3(0.0);
-        model.transform.scale = glm::vec3(1.0);
-        model.transform.rotation = glm::vec3(0.0);
-
-        model.textured = false;
-        model.lit = false;
-
-        model.uniform_buffer = 
-            renderer.createBufferOfSize(
-                sizeof(ModelUniforms), StorageMode::SHARED);
-
-        return model;
+        return fromMeshes(renderer, meshes);
     }
 
-    void render(DZRenderer &renderer)
+    void render(DZRenderer &renderer, const Transform &transform) const
     {
         ModelUniforms uniforms {
-            this->transform.asMat4(),
+            transform.asMat4(),
             this->lit,
             this->textured
         };

@@ -1,6 +1,3 @@
-#ifndef _TERRAIN_H
-#define _TERRAIN_H
-
 #include <vector>
 #include <map>
 #include <PerlinNoise.hpp>
@@ -10,6 +7,12 @@
 #include "transform.h"
 #include "renderer.h"
 #include "term_renderer.h"
+#include "asset.h"
+
+#pragma once
+
+#ifndef _TERRAIN_H
+#define _TERRAIN_H
 
 #define TILES_PER_SIDE 64
 
@@ -34,12 +37,14 @@ struct MegaChunkData
 struct Chunk
 {
     Transform transform;
+
     u8 material_indices[TILES_PER_SIDE * TILES_PER_SIDE];
     u8 los_indices[TILES_PER_SIDE * TILES_PER_SIDE];
+    u8 navigable[TILES_PER_SIDE * TILES_PER_SIDE];
+    
     DZMesh mesh;
     DZBuffer local_uniforms_buffer;
 
-    Chunk();
     Chunk(DZRenderer &renderer, v2f chunk_start, u32 seed, f32 chunk_size);
 
     void updateUniforms(DZRenderer &renderer, s32 chunk_index);
@@ -52,14 +57,17 @@ struct Terrain
     const f32 chunk_size;
     const u32 seed;
     DZBuffer terrain_uniform_buffer;
+    DZPipeline terrain_pipeline;
 
     std::map<v2f, Chunk> chunks;
+    std::array<Chunk*, 9> visible;
 
     Terrain(DZRenderer &renderer, f32 chunk_size, u32 seed);
     void createChunk(DZRenderer &renderer, glm::vec2 pos_in_chunk);
     void seedNoise(u32 seed);
     void termRender(DZTermRenderer &term, glm::vec2 pos);
     void updateLOS(glm::vec2 pos, int LOS);
+    void getVisible(Camera &camera);
     v2f getChunkOriginFromPos(v2f pos);
     Chunk* getChunkFromPos(v2f pos);
     int getTileIndexFromPos(v2f pos);

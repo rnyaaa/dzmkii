@@ -14,13 +14,23 @@
 #ifndef _MESH_H
 #define _MESH_H
 
+enum class PrimitiveType
+{
+    POINT,
+    LINE,
+    LINE_STRIP,
+    TRIANGLE,
+    TRIANGLE_STRIP
+};
+
 struct MeshData
 {
     std::vector<Vertex> vertices;
     // Could be reasonably be u16, need to change index type in renderer
     std::vector<u32> indices;
+    PrimitiveType primitive_type;
 
-    static MeshData UnitSquare()
+    static MeshData UnitPlane()
     {
         return {
             {
@@ -29,7 +39,32 @@ struct MeshData
                 Vertex().withPos(glm::vec3(1.0f, 1.0f, 0.0f)),
                 Vertex().withPos(glm::vec3(0.0f, 1.0f, 0.0f)),
             },
-            { 0, 1, 2, 0, 3, 2 }
+            { 0, 1, 2, 0, 3, 2 },
+            PrimitiveType::TRIANGLE
+        };
+    }
+
+
+
+    static MeshData UnitSquare()
+    {
+        return {
+            { 
+                Vertex()
+                    .withPos(glm::vec3(0.0, 0.0, 0.0))
+                    .withColor(glm::vec3(1.0, 1.0, 1.0)),
+                Vertex()
+                    .withPos(glm::vec3(1.0, 0.0, 0.0))
+                    .withColor(glm::vec3(1.0, 1.0, 1.0)),
+                Vertex()
+                    .withPos(glm::vec3(1.0, 1.0, 0.0))
+                    .withColor(glm::vec3(1.0, 1.0, 1.0)),
+                Vertex()
+                    .withPos(glm::vec3(0.0, 1.0, 0.0))
+                    .withColor(glm::vec3(1.0, 1.0, 1.0)),
+            },
+            { 0, 1, 2, 3, 0 },
+            PrimitiveType::LINE_STRIP
         };
     }
 };

@@ -10,7 +10,7 @@ Camera::Camera()
     this->move_speed = 1.0f;
     this->zoom_speed = 0.9f;
     this->zoom_max = 128.0f;
-    this->zoom_min = 24.0f;
+    this->zoom_min = 6.0f;
 }
 
 glm::mat4 Camera::getViewMatrix() const

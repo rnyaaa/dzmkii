@@ -2,6 +2,8 @@
 #include <optional>
 #include <filesystem>
 #include <string_view>
+#include <fstream>
+#include <sstream>
 
 #define STB_IMAGE_IMPLEMENTATION 
 #include "stb_image.h"
@@ -49,7 +51,7 @@ std::vector<std::string> AssetManager::findMatchingFiles(
     return matches;
 }
 
-std::optional<TextureData> AssetManager::getTexture(std::string filename)
+std::optional<TextureData> AssetManager::getTexture(const std::string &filename)
 {
     Log::verbose("Getting Texture...");
     std::vector<std::string> matches = this->findMatchingFiles(filename);
@@ -120,4 +122,15 @@ std::optional<TextureData> AssetManager::getTexture(std::string filename)
     free(texture_data);
 
     return td;
+}
+
+std::optional<std::string> AssetManager::getTextFile(const std::string &path)
+{
+    // TODO: Do actual smart asset management stuff here
+    std::ifstream file_stream(path);
+    std::stringstream text_stream;
+
+    text_stream << file_stream.rdbuf();
+
+    return text_stream.str();
 }

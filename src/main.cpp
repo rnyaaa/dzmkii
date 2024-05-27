@@ -1,5 +1,9 @@
+#include "systems.h"
+#define GLM_SWIZZLE
+
 #include <SDL_events.h>
 #include <SDL_metal.h>
+#include <SDL_mouse.h>
 #include <SDL_render.h>
 #include <SDL_scancode.h>
 #include <SDL_video.h>
@@ -10,12 +14,16 @@
 #include <fstream>
 #include <optional>
 #include <sstream>
+#include <assert.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
 #include <simd/simd.h>
+
+#include <entt.hpp>
 
 #include "common.h"
 #include "logger.h"
@@ -28,56 +36,27 @@
 #include "term_renderer.h"
 #include "entity.h"
 #include "geometry.h"
+#include "factory.h"
+#include "light.h"
+#include "scene.h"
+#include "systems.h"
 
 #define SDL_ERR(msg) \
     printf("[ERROR] %s\n\t%s\n", msg, SDL_GetError())
 
-void movement(Camera &camera, const u8 *key_state);
+const glm::vec3 north(-1.0f, -1.0f, 0.0f);
+const glm::vec3 south(1.0f, 1.0f, 0.0f);
+const glm::vec3 east(-1.0f, 1.0f, 0.0f);
+const glm::vec3 west(1.0f, -1.0f, 0.0f);
 
-struct GlobalUniforms
+
+struct World
 {
-    CameraData camera;
-    glm::vec4 sun;
+    Scene scene;
+
+    std::vector<std::function<void(GAMESYSTEM_ARGS)>> game_systems;
+    std::vector<std::function<void(RENDERSYSTEM_ARGS)>> render_systems;
 };
-
-struct Lol
-{
-    char *str;
-    int x, y;
-
-    Lol(char *str, int x, int y) : str(str), x(x), y(y) { }
-
-    void tick(DZTermRenderer &term)
-    {
-        term.setCursor(x, y);
-        term.setStroke(Color::WHITE, Color::BLACK, '#');
-        term.setFill(Color::WHITE, Color::BLACK, '-');
-        term.rect(strlen(str) + 4, 5);
-        term.setCursor(x + 2, y + 2);
-        term.write(str);
-        x++;
-        x %= 150;
-    }
-};
-
-std::optional<std::pair<glm::vec2, glm::vec2>> rect_intersect(glm::vec2 pos1, glm::vec2 dim1, glm::vec2 pos2, glm::vec2 dim2)
-{
-    float min_x, min_y, max_x, max_y;
-
-    min_x = std::max(pos1.x         , pos2.x);
-    max_x = std::min(pos1.x + dim1.x, pos2.x + dim2.x);
-
-    min_y = std::max(pos1.y         , pos2.y);
-    max_y = std::min(pos1.y + dim1.y, pos2.y + dim2.y);
-
-    if (min_x >= max_x || min_y >= max_y) 
-        return std::nullopt;
-
-    return std::make_pair(
-            glm::vec2(min_x, min_y), 
-            glm::vec2(max_x, max_y)
-        );
-}
 
 int main(int argc, char *argv[])
 {
@@ -103,25 +82,34 @@ int main(int argc, char *argv[])
     if (window == NULL)
         SDL_ERR("SDL_Window could not be created!");
 
-    std::ifstream basic_shader_file("shaders/basic_shader.metal");
-    std::stringstream basic_shader_stream;
-    basic_shader_stream << basic_shader_file.rdbuf();
+    AssetManager ass_man;
 
-    std::ifstream terrain_shader_file("shaders/terrain_shader.metal");
-    std::stringstream terrain_shader_stream;
-    terrain_shader_stream << terrain_shader_file.rdbuf();
+    auto gui_shader_src = *ass_man.getTextFile("shaders/gui_shader.metal");
+    auto basic_shader_src = *ass_man.getTextFile("shaders/basic_shader.metal");
+    auto terrain_shader_src = *ass_man.getTextFile("shaders/terrain_shader.metal");
 
     DZRenderer renderer(window);
 
-    std::vector<DZShader> terrain_shaders = renderer.compileShaders(terrain_shader_stream.str(), {"vertexMain", "fragmentMain"});
-    std::vector<DZShader> basic_shaders = renderer.compileShaders(basic_shader_stream.str(), {"vertexMain", "fragmentMain"});
+    std::vector<DZShader> gui_shaders 
+        = renderer.compileShaders(gui_shader_src, {"vertexMain", "fragmentMain"});
+    std::vector<DZShader> basic_shaders 
+        = renderer.compileShaders(basic_shader_src, {"vertexMain", "fragmentMain"});
+    std::vector<DZShader> terrain_shaders 
+        = renderer.compileShaders(terrain_shader_src, {"vertexMain", "fragmentMain"});
 
+    // TODO: Handle more gracefully
+    if(gui_shaders.size()     != 2) exit(1);
+    if(basic_shaders.size()   != 2) exit(1);
+    if(terrain_shaders.size() != 2) exit(1);
 
-    DZPipeline terrain_pipeline = renderer.createPipeline(terrain_shaders[0], terrain_shaders[1]);
-    DZPipeline basic_pipeline = renderer.createPipeline(basic_shaders[0], basic_shaders[1]);
+    DZPipeline gui_pipeline 
+        = renderer.createPipeline(gui_shaders[0], gui_shaders[1]);
+    DZPipeline basic_pipeline 
+        = renderer.createPipeline(basic_shaders[0], basic_shaders[1]);
+    DZPipeline terrain_pipeline 
+        = renderer.createPipeline(terrain_shaders[0], terrain_shaders[1]);
 
-    AssetManager ass_man;
-
+    // TODO: Get these from a config file
     ass_man.addSearchDirectory("resources");
     ass_man.addSearchDirectory("resources/new");
     ass_man.addSearchDirectory("resources/new/1-alldirt-negnegneg");
@@ -157,59 +145,114 @@ int main(int argc, char *argv[])
     }
 
     DZTextureArray tex_array = renderer.createTextureArray(texture_datas);
-    Log::verbose("Creating terrain...");
-    
-    Terrain terrain(renderer, 100.0f, 616u);
-
-
-    Log::verbose("Generating chunk");
-
-    terrain.createChunk(renderer, glm::vec2(0.0f, 0.0f));
-    terrain.createChunk(renderer, glm::vec2(-100.0f, -100.0f));
-    terrain.createChunk(renderer, glm::vec2(-100.0f, 0.0f));
-    terrain.createChunk(renderer, glm::vec2(0.0f, -100.0f));
-    // TODO: terrain.createVisibleChunks(camera);
-    //       Create any chunk that might be visible on 
-    //       the camera
-
-    Log::verbose("Created terrain.");
-
-    Camera camera;
-    Sun sun({1.0f, 1.0f, 1.0f});
-
-    glm::vec3 north(-1.0f, -1.0f, 0.0f);
-    glm::vec3 south(1.0f, 1.0f, 0.0f);
-    glm::vec3 east(-1.0f, 1.0f, 0.0f);
-    glm::vec3 west(1.0f, -1.0f, 0.0f);
-
-    DZBuffer global_uniform_buffer = 
-        renderer.createBufferOfSize(sizeof(GlobalUniforms), StorageMode::SHARED);
 
     const u8 *key_state = SDL_GetKeyboardState(nullptr);
+    u8 *prev_key_state = (u8 *) malloc(SDL_NUM_SCANCODES);
 
-    DZTermRenderer term(150, 40);
-    Entity los_tester;
-    los_tester.line_of_sight = 15;
+    World world {
+        Scene(renderer, terrain_pipeline, basic_pipeline),
+        {},
+        {}
+    };
+
+    world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, 0.0f));
+    world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, -100.0f));
+    world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, 0.0f));
+    world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, -100.0f));
+
+    const entt::entity c = world.scene.registry.create();
+    Transform trans;
+    trans.pos = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    world.scene.registry.emplace<Transform>(c, trans);
+    world.scene.registry.emplace<LineOfSight>(c, 5u);
+    world.scene.registry.emplace<MoveSpeed>(c, 5u);
+
+    DZMesh loser_mesh = renderer.createMesh(MeshData::UnitPlane());
+
+    for (int i = 0; i < 10; i++)
+    {
+        const entt::entity c = world.scene.registry.create();
+        Transform loser_transform;
+        loser_transform.pos = glm::vec3((rand() % 200) * 1.0f,(rand() % 200) * 1.0f, 0.0f);
+        world.scene.registry.emplace<Transform>(c, loser_transform);
+        Model loser_model = Model::fromMeshes(renderer, std::vector<DZMesh> { loser_mesh });
+        world.scene.registry.emplace<Model>(c, loser_model);
+        world.scene.registry.emplace<LineOfSight>(c, 5u);
+        world.scene.registry.emplace<MoveSpeed>(c, rand() % 10u + 2u);
+    }
+
+    AArect2i selection;
+    selection.pos = {0, 0};
+    selection.dim = {0, 0};
+
+    Model selection_rect_model = 
+        Model::fromMeshDatas(renderer, { MeshData::UnitSquare() });
 
     SDL_Event e;
+    bool mouse_held = false;
+    int x_start, y_start;
+    int x_curr, y_curr;
+
+    Transform selection_rect_transform;
+
+    double delta_time = 0.0;
+
+    world.game_systems.push_back(&GameSystem::cameraMovement);
+    world.game_systems.push_back(&GameSystem::terrainGeneration);
+    world.game_systems.push_back(&GameSystem::unitMovement);
+    world.game_systems.push_back(&GameSystem::LOS);
+
+    world.render_systems.push_back(&RenderSystem::updateData);
+    world.render_systems.push_back(&RenderSystem::terrain);
+    world.render_systems.push_back(&RenderSystem::models);
+    
+    World *curr_world;
+
+    curr_world = &world;
+
+    World alt_world = {
+        Scene(renderer, terrain_pipeline, basic_pipeline),
+        {},
+        {}
+    };
+
+    alt_world.render_systems.push_back(&RenderSystem::updateData);
+    alt_world.render_systems.push_back(&RenderSystem::models);
+
+    auto plane_entity = alt_world.scene.registry.create();
+    Model plane_model 
+        = Model::fromMeshDatas(renderer, {MeshData::UnitPlane()});
+    alt_world.scene.registry.emplace<Model>(plane_entity, plane_model);
+    alt_world.scene.registry.emplace<Transform>(plane_entity);
+
     while(true)
     {
+        const auto frame_start = std::chrono::steady_clock::now();
+
         while (SDL_PollEvent(&e))
         {
             if (e.type == SDL_QUIT) 
                 goto quit;
 
             if(e.type == SDL_MOUSEWHEEL)
-                camera.zoom(e.wheel.y > 0 ? -1.0f : 1.0f);
+                curr_world->scene.camera.zoom(e.wheel.y > 0 ? -1.0f : 1.0f);
+            
+            if(e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                SDL_GetMouseState(&x_start, &y_start);
+                mouse_held = true;
+
+                selection.pos = v2i {x_start, y_start};
+                Log::verbose("Mouse button down");
+            }
+
+            if(e.type == SDL_MOUSEBUTTONUP)
+            {
+                mouse_held = false;
+                Log::verbose("Mouse button up");
+            }
         }
-
-        if (key_state[SDL_SCANCODE_ESCAPE])
-            goto quit;
-
-        if (key_state[SDL_SCANCODE_C])
-            terrain.chunks.clear();
-
-        movement(camera, key_state);
 
         s32 window_width, window_height;
         SDL_GetWindowSize(window, &window_width, &window_height);
@@ -218,89 +261,57 @@ int main(int argc, char *argv[])
                 (float) (window_height)
             );
 
-        GlobalUniforms uniforms = {
-            camera.getCameraData(screen_dim),
-            sun.dir,
-        };
+        SDL_GetMouseState(&x_curr, &y_curr);
 
-        renderer.setBufferOfSize(global_uniform_buffer, &uniforms, sizeof(GlobalUniforms));
-
-        renderer.enqueueCommand(
-                DZRenderCommand::SetPipeline(terrain_pipeline));
-
-        renderer.enqueueCommand(
-                DZRenderCommand::BindBuffer(
-                    DZBufferBinding::Fragment(global_uniform_buffer, 0)
-                    ));
-        renderer.enqueueCommand(
-                DZRenderCommand::BindBuffer(
-                    DZBufferBinding::Vertex(global_uniform_buffer, 0)
-                    ));
-
-        std::array<glm::vec3, 4> frustrum_bounds = camera.getFrustrumBounds(screen_dim);
-
-        for (int i = -1; i <= 1; i++)
+        if (mouse_held)
         {
-            for (int j = -1; j <= 1; j++)
-            {
-                terrain.createChunk(renderer, camera.target.xy() + glm::vec2(i * 100.0f, j * 100.0f));
-            }
-        }
-        std::array<Chunk*, 9> visible;
-        for (int i = -1; i <= 1; i++)
-        {
-            for (int j = -1; j <= 1; j++)
-            {
-                visible[(j+1) * 3 + (i + 1)] = terrain.getChunkFromPos(v2f{camera.target.x + terrain.chunk_size * i, 
-                                                                            camera.target.y + terrain.chunk_size * j});
-            }
+            selection.dim = v2i { x_curr - x_start, y_curr - y_start };
+            selection_rect_transform.pos = glm::vec3(
+                    (selection.pos.x / screen_dim.x * 2.0f) - 1.0f, 
+                    (-selection.pos.y / screen_dim.y * 2.0f) + 1.0f, 
+                    0.0);
+            selection_rect_transform.scale = glm::vec3(
+                    selection.dim.x / screen_dim.x * 2.0f, 
+                    -selection.dim.y / screen_dim.y * 2.0f, 
+                    0.0);
         }
 
-        for (int i = 0; i < 9; i++)
+        if (key_state[SDL_SCANCODE_ESCAPE])
+            goto quit;
+
+        if (key_state[SDL_SCANCODE_C])
+            curr_world->scene.terrain.chunks.clear();
+
+        if (key_state[SDL_SCANCODE_F] && !prev_key_state[SDL_SCANCODE_F])
         {
-            for(auto &los_index : visible[i]->los_indices)
-            {
-                if(los_index == 2) los_index = 1;
-            }
-            visible[i]->updateUniforms(renderer, i);
+            if (curr_world == &world)
+                curr_world = &alt_world;
+            else
+                curr_world = &world;
         }
-        //Log::verbose("%f %f %f", camera.target.x, camera.target.y, camera.target.z);
-        los_tester.transform.pos = camera.target;
-        terrain.updateLOS(los_tester.transform.pos.xy(), los_tester.line_of_sight);
 
-        terrain.updateUniforms(renderer, visible);
+        for (auto system : curr_world->game_systems)
+            system(renderer, curr_world->scene, key_state, delta_time);
+    
+        for (auto system : curr_world->render_systems)
+            system(renderer, curr_world->scene, screen_dim);
+
         renderer.enqueueCommand(
-                    DZRenderCommand::BindBuffer(
-                        DZBufferBinding::Fragment(
-                            terrain.terrain_uniform_buffer, 2)
-                        )
-                );
+                DZRenderCommand::SetPipeline(gui_pipeline));
 
-        for (int i = 0; i < 9; i++)
+        if (mouse_held)
         {
-            visible[i]->updateUniforms(renderer, i);
-            renderer.enqueueCommand(
-                    DZRenderCommand::BindBuffer(
-                        DZBufferBinding::Vertex(
-                            visible[i]->local_uniforms_buffer, 2)));
-
-            renderer.enqueueCommand(
-                    DZRenderCommand::BindBuffer(
-                        DZBufferBinding::Fragment(
-                            visible[i]->local_uniforms_buffer, 1)));
-
-            renderer.enqueueCommand(
-                     DZRenderCommand::DrawMesh(
-                         visible[i]->mesh));
+            selection_rect_model.render(renderer, selection_rect_transform);
         }
 
         renderer.executeCommandQueue();
 
-        //term.clear();
+        const auto frame_end = std::chrono::steady_clock::now();
+        const std::chrono::duration<double> frame_delta = frame_end - frame_start;
 
-        //terrain.termRender(term, camera.taDZBuffer bufferrget.xy());
+        delta_time = frame_delta.count();
 
-        //term.display()
+        memcpy(prev_key_state, key_state, SDL_NUM_SCANCODES);
     }
 
 quit:
@@ -310,14 +321,4 @@ quit:
     return 0;
 }
 
-void movement(Camera &camera, const u8 *key_state)
-{
-    if(key_state[SDL_SCANCODE_W])
-        camera.move(glm::vec3(-1.0f, -1.0f, 0.0f));
-    if(key_state[SDL_SCANCODE_A])
-        camera.move(glm::vec3(1.0f, -1.0f, 0.0f));
-    if(key_state[SDL_SCANCODE_S])
-        camera.move(glm::vec3(1.0f, 1.0f, 0.0f));
-    if(key_state[SDL_SCANCODE_D])
-        camera.move(glm::vec3(-1.0f, 1.0f, 0.0f));
-}
+

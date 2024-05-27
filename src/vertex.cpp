@@ -23,7 +23,9 @@ void Vertex::calculateTangentAndBitangent()
     if(glm::length(c1) > glm::length(c2))
     {
         this->tangent = glm::vec4(c1, 0.0f);
-    } else {
+    } 
+    else 
+    {
         this->tangent = glm::vec4(c2, 0.0f);
     }
 
@@ -37,6 +39,13 @@ Vertex Vertex::withPos(glm::vec3 pos)
 {
     Vertex new_vert = *this;
     new_vert.pos = glm::vec4(pos, 1.0f);
+    return new_vert;
+}
+
+Vertex Vertex::withColor(glm::vec3 color)
+{
+    Vertex new_vert = *this;
+    new_vert.color = glm::vec4(color, 1.0f);
     return new_vert;
 }
 

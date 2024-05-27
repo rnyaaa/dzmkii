@@ -17,7 +17,8 @@ struct AssetManager
             bool multiple = false
         );
 
-    std::optional<TextureData> getTexture(std::string path);
+    std::optional<TextureData> getTexture(const std::string &path);
+    std::optional<std::string> getTextFile(const std::string &path);
 
 };
 

@@ -36,12 +36,12 @@ typedef size_t DZPipeline;
 //       with some sort of ERROR asset like in source eng
 const size_t DZInvalid = 0xffffffffdeadc0de;
 
-enum ShaderStage
+enum class ShaderStage
 {
     VERTEX, FRAGMENT
 };
 
-enum StorageMode
+enum class StorageMode
 {
     SHARED, MANAGED, PRIVATE
 };
@@ -54,12 +54,13 @@ struct DZBufferBinding
 
     static DZBufferBinding Fragment(DZBuffer buffer, u32 binding)
     {
-        return DZBufferBinding { FRAGMENT, buffer, binding };
+        return DZBufferBinding { 
+            ShaderStage::FRAGMENT, buffer, binding };
     }
 
     static DZBufferBinding Vertex(DZBuffer buffer, u32 binding)
     {
-        return DZBufferBinding { VERTEX, buffer, binding };
+        return DZBufferBinding { ShaderStage::VERTEX, buffer, binding };
     }
 };
 
