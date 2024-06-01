@@ -67,6 +67,14 @@ struct MeshData
             PrimitiveType::LINE_STRIP
         };
     }
+
+    void translate(glm::vec3 translation)
+    {
+        for (auto &v : this->vertices)
+        {
+            v.pos += glm::vec4(translation, 0.0);
+        }
+    }
 };
 
 #endif // _MESH_H

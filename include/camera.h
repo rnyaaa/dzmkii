@@ -1,6 +1,8 @@
 #include <glm/glm.hpp>
 #include <array>
+#include <math.h>
 #include "common.h"
+#include "geometry.h"
 
 #ifndef _CAMERA_H
 #define _CAMERA_H
@@ -22,6 +24,9 @@ struct Camera
     f32 zoom_max;
     f32 zoom_min;
 
+    f32 theta;
+    f32 phi;
+
     glm::mat4 getViewMatrix() const;
     glm::mat4 getProjectionMatrix(glm::vec2 screen_dim) const;
     glm::vec3 getViewDirection() const;
@@ -30,7 +35,10 @@ struct Camera
     CameraData getCameraData(glm::vec2 screen_dim) const;
 
     void move(glm::vec3 direction);
+    void rotateWithOrigin(v2f dir);
     void zoom(f32 change);
+
+    bool ortho;
 
     Camera();
 

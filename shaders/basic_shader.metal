@@ -31,6 +31,14 @@ struct GlobalUniforms
 {
     CameraData camera;
     float3 sun_dir;
+    int no_lights;
+};
+
+struct PointLight
+{
+    packed_float3 pos;
+    packed_float3 color;
+    float falloff;
 };
 
 struct ModelUniforms
@@ -61,13 +69,68 @@ v2f vertex vertexMain(
     return o;
 };
 
+    half3 blend(float2 pos, texture2d_array<half> tex, sampler tex_sampler, int index)
+    {
+        half3 color(0.0);
+            half3 material = half3(tex.sample(
+                    tex_sampler, pos, index));
+        color.x += material.x;
+        color.y += material.y;
+        color.z += material.z;
+        
+        return color;
+    };
+
+    half3 norm_blend(float2 pos, texture2d_array<half> tex, sampler tex_sampler, int index)
+    {
+        half2 pd(0.0); 
+ 
+            half3 n = half3(tex.sample(
+                    tex_sampler, pos, index + 1));
+
+            pd += n.xy/n.z;
+
+        half3 normal = normalize(half3(n.xy, 1.0));
+        return normal * 0.5 + 0.5;
+    }
+
+
+
 half4 fragment fragmentMain( 
         v2f in [[stage_in]],
         constant GlobalUniforms &global_uniforms [[ buffer(0) ]],
         constant ModelUniforms &local_uniforms [[ buffer(1) ]],
-        texture2d_array<half> terrain_textures [[ texture(0) ]],
+            texture2d_array<half> terrain_textures [[ texture(0) ]],
+        constant PointLight *lights [[ buffer(3) ]],
         sampler texture_sampler [[ sampler(0) ]]
     )
 {
-    return half4(0.5, 0.5, 0.5, 1.0 );
-}
+        half3 texture = blend(in.world_position.xy, terrain_textures, texture_sampler, 6);
+        
+        float3 tex_normal = (float3) norm_blend(in.world_position.xy, terrain_textures, texture_sampler, 6);
+        
+        tex_normal = normalize(tex_normal * 2.0 - 1.0);
+        float3x3 TBN = float3x3(in.T, in.B, in.N);
+        float3 normal = normalize(TBN * tex_normal);
+
+
+        float3 diffuse = float3(0.1);
+        for(int i = 0; i < global_uniforms.no_lights; i++)
+        {
+            float3 to_light = lights[i].pos - in.world_position.xyz;
+            float distance = length(to_light);
+            float3 light_dir = normalize(to_light);
+            float diffuse_factor = 2.0 * max(dot(normal, light_dir), 0.0) / (distance * distance);
+            diffuse += lights[i].color * diffuse_factor;
+        }
+            
+        float3 sun_dir = normalize(global_uniforms.sun_dir);
+        float sun_diff = max(dot(normal, sun_dir), 0.0);
+        float3 sun_color = float3(1.0, 0.9, 0.7);
+
+
+        diffuse += sun_color * sun_diff;
+        diffuse *= (float3) texture * 10.0;
+
+        return half4( (half3) diffuse, 1.0 );
+    }

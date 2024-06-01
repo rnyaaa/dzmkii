@@ -14,10 +14,15 @@
 #include <Metal/MTLResource.hpp>
 #include <Metal/MTLTexture.hpp>
 
+#include "Metal/MTLEvent.hpp"
 #include "mesh.h"
 #include "camera.h"
 #include "sun.h"
 #include "texture.h"
+
+#define EVENT_INIT               0
+#define EVENT_WAITING_FOR_RENDER 1
+#define EVENT_RENDER_FINISH      2
 
 #define DEFAULT_PIXEL_FORMAT MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB
 
@@ -127,6 +132,8 @@ struct DZRenderer
     MTL::Device *device;
     MTL::CommandQueue *queue;
 
+    MTL::SharedEvent *render_event;
+
     MTL::ClearColor clear_color;
 
     std::vector<DZRenderCommand> command_queue;
@@ -154,6 +161,8 @@ struct DZRenderer
     DZRenderer(SDL_Window *window);
 
     ~DZRenderer();
+
+    void waitForRenderFinish();
 
     void enqueueCommand(DZRenderCommand command);
     void executeCommandQueue();

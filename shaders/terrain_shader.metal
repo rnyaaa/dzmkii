@@ -54,7 +54,7 @@ struct TerrainUniforms
     uint8_t texture_indices[3 * 3 * 64 * 64];    
     uint8_t los_indices[3 * 3 * 64 * 64]; 
     // 0 = Unexplored  1 = Seen  2 == Visible
-};
+    };
 
 struct ChunkUniforms
 {
@@ -237,7 +237,7 @@ void set_materials(thread neighbor *nbors, uint8_t const constant *texture_index
     for(int i = 0; i < n_nbor; i++)
     {
         nbors[i].material    = texture_index[tile_index_from_pos(nbors[i].pos, nbors[i].chunk_index)];
-        nbors[i].los = los_index[tile_index_from_pos(nbors[i].pos, nbors[i].chunk_index)];
+        nbors[i].los =  2; //los_index[tile_index_from_pos(nbors[i].pos, nbors[i].chunk_index)];
     }
 };
 

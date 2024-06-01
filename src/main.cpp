@@ -119,7 +119,46 @@ int main(int argc, char *argv[])
     ass_man.addSearchDirectory("resources/new/5-mossy-pos");
     ass_man.addSearchDirectory("resources/new/6-darkmoss-pospos");
     ass_man.addSearchDirectory("resources/new/7-undergrowth-pospospos");
- 
+
+    ass_man.addSearchDirectory("resources/new/badlands/");
+    ass_man.addSearchDirectory("resources/new/badlands/1 - brickwork mossy fungusy ruins");
+    ass_man.addSearchDirectory("resources/new/badlands/2-burnt undergrowth, charred sticks(2)");
+    ass_man.addSearchDirectory("resources/new/badlands/3 - burnt undergrowth, charred sticks burnt dark moss");
+    ass_man.addSearchDirectory("resources/new/badlands/4 - dead ground smoldering ground burnt grass, charred dirt. black and evil earth.");
+    ass_man.addSearchDirectory("resources/new/badlands/5 - dry, cracks. green ooze in cracks.");
+    ass_man.addSearchDirectory("resources/new/badlands/6 - dirt. wet green ooze around. bright green.");
+    ass_man.addSearchDirectory("resources/new/badlands/7 - all ooze, some dirt pokes out, putrid");
+
+//   ass_man.addSearchDirectory("resources/new/meatlands/");
+//   ass_man.addSearchDirectory("resources/new/meatlands/1 - vastmembrane");
+//   ass_man.addSearchDirectory("resources/new/meatlands/2 - biggerorgans");
+//   ass_man.addSearchDirectory("resources/new/meatlands/3 - organy");
+//   ass_man.addSearchDirectory("resources/new/meatlands/4 - meat");
+//   ass_man.addSearchDirectory("resources/new/meatlands/5 - more blood guts");
+//   ass_man.addSearchDirectory("resources/new/meatlands/6 - bloodier");
+//   ass_man.addSearchDirectory("resources/new/meatlands/7 - blood everywhere");
+//
+//   ass_man.addSearchDirectory("resources/new/rainforest/");
+//   ass_man.addSearchDirectory("resources/new/rainforest/1 - "); 
+//   ass_man.addSearchDirectory("resources/new/rainforest/2 - "); 
+//   ass_man.addSearchDirectory("resources/new/rainforest/3 - "); 
+//   ass_man.addSearchDirectory("resources/new/rainforest/4 - "); 
+//   ass_man.addSearchDirectory("resources/new/rainforest/5 - "); 
+//   ass_man.addSearchDirectory("resources/new/rainforest/6 - "); 
+//   ass_man.addSearchDirectory("resources/new/rainforest/6 - "); 
+//
+//   ass_man.addSearchDirectory("resources/new/badlands/");
+//   ass_man.addSearchDirectory("resources/new/badlands/1 - ");
+//   ass_man.addSearchDirectory("resources/new/badlands/2 - ");
+//   ass_man.addSearchDirectory("resources/new/badlands/3 - ");
+//   ass_man.addSearchDirectory("resources/new/badlands/4 - ");
+//   ass_man.addSearchDirectory("resources/new/badlands/5 - ");
+//   ass_man.addSearchDirectory("resources/new/badlands/6 - ");
+//   ass_man.addSearchDirectory("resources/new/badlands/6 - ");
+
+
+
+
     std::vector<std::string> texture_paths = {
         "alldirt-albedo.png",    
         "alldirt-normal.png",    
@@ -134,7 +173,67 @@ int main(int argc, char *argv[])
         "darkmoss-albedo.png",
         "darkmoss-normal.png",
         "undergrowth-albedo.png",
-        "undergrowth-normal.png"
+        "undergrowth-normal.png",
+
+        "brick-albedo.png",    
+        "brick-normal.png",    
+        "burnt-albedo.png",    
+        "burnt-normal.png",
+        "burntmoss-albedo.png",
+        "burntmoss-normal.png",
+        "deadground-albedo.png",  
+        "deadground-normal.png",    
+        "cracksooze-albedo.png",    
+        "cracksooze-normal.png",
+        "dirtooze-albedo.png",
+        "dirtooze-normal.png",
+        "ooze-albedo.png",
+        "ooze-normal.png",
+
+//       ".png",    
+//       ".png",    
+//       ".png",    
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",  
+//       ".png",    
+//       ".png",    
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",
+//
+//       ".png",    
+//       ".png",    
+//       ".png",    
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",  
+//       ".png",    
+//       ".png",    
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",
+//
+//       ".png",    
+//       ".png",    
+//       ".png",    
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",  
+//       ".png",    
+//       ".png",    
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",
+//       ".png",
     };
 
     std::vector<TextureData> texture_datas;
@@ -167,8 +266,9 @@ int main(int argc, char *argv[])
     world.scene.registry.emplace<Transform>(c, trans);
     world.scene.registry.emplace<LineOfSight>(c, 5u);
     world.scene.registry.emplace<MoveSpeed>(c, 5u);
-
-    DZMesh loser_mesh = renderer.createMesh(MeshData::UnitPlane());
+    auto loser_plane_data = MeshData::UnitPlane();
+    loser_plane_data.translate(glm::vec3(-0.5, -0.5, 0.0));
+    DZMesh loser_mesh = renderer.createMesh(loser_plane_data);
 
     for (int i = 0; i < 10; i++)
     {
@@ -210,6 +310,9 @@ int main(int argc, char *argv[])
     World *curr_world;
 
     curr_world = &world;
+    
+
+    // // // ALL  WORLD CREATE \\ \\ \\
 
     World alt_world = {
         Scene(renderer, terrain_pipeline, basic_pipeline),
@@ -217,12 +320,17 @@ int main(int argc, char *argv[])
         {}
     };
 
+    alt_world.scene.camera.ortho = false;
+
+    alt_world.game_systems.push_back(&GameSystem::cameraMovement);
     alt_world.render_systems.push_back(&RenderSystem::updateData);
     alt_world.render_systems.push_back(&RenderSystem::models);
 
     auto plane_entity = alt_world.scene.registry.create();
+    auto plane_entity_mesh_data = MeshData::UnitPlane();
+    plane_entity_mesh_data.translate(glm::vec3(-0.5, -0.5, 0.0));
     Model plane_model 
-        = Model::fromMeshDatas(renderer, {MeshData::UnitPlane()});
+        = Model::fromMeshDatas(renderer, {plane_entity_mesh_data});
     alt_world.scene.registry.emplace<Model>(plane_entity, plane_model);
     alt_world.scene.registry.emplace<Transform>(plane_entity);
 
@@ -236,8 +344,30 @@ int main(int argc, char *argv[])
                 goto quit;
 
             if(e.type == SDL_MOUSEWHEEL)
-                curr_world->scene.camera.zoom(e.wheel.y > 0 ? -1.0f : 1.0f);
-            
+            {
+
+                if(!curr_world->scene.camera.ortho)
+                {                    
+                    glm::vec3 position = curr_world->scene.camera.position;
+                    glm::vec3 target   = curr_world->scene.camera.target;
+                    glm::vec3 toTarget = target - position;
+
+                    f32 distTarget = toTarget.length();
+
+                    f32 scroll_dir = e.wheel.y > 0 ? -1.0f : 1.0f;
+
+                    if (toTarget.length() > 10.0f, toTarget.length() < 100.0f)
+                    {
+                        curr_world->scene.camera.position 
+                            += toTarget * scroll_dir * (toTarget.length() * toTarget.length() / 100.0f);
+                    }
+                } 
+                else 
+                {
+                    curr_world->scene.camera.zoom(e.wheel.y > 0 ? -1.0f : 1.0f);
+                }
+            } 
+
             if(e.type == SDL_MOUSEBUTTONDOWN)
             {
                 SDL_GetMouseState(&x_start, &y_start);
@@ -267,7 +397,7 @@ int main(int argc, char *argv[])
         {
             selection.dim = v2i { x_curr - x_start, y_curr - y_start };
             selection_rect_transform.pos = glm::vec3(
-                    (selection.pos.x / screen_dim.x * 2.0f) - 1.0f, 
+                        (selection.pos.x / screen_dim.x * 2.0f) - 1.0f, 
                     (-selection.pos.y / screen_dim.y * 2.0f) + 1.0f, 
                     0.0);
             selection_rect_transform.scale = glm::vec3(
@@ -290,12 +420,15 @@ int main(int argc, char *argv[])
                 curr_world = &world;
         }
 
+        renderer.waitForRenderFinish();
+
         for (auto system : curr_world->game_systems)
             system(renderer, curr_world->scene, key_state, delta_time);
-    
+   
         for (auto system : curr_world->render_systems)
             system(renderer, curr_world->scene, screen_dim);
-
+        
+        
         renderer.enqueueCommand(
                 DZRenderCommand::SetPipeline(gui_pipeline));
 

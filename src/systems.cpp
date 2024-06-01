@@ -7,14 +7,28 @@
 
 void GameSystem::cameraMovement(GAMESYSTEM_ARGS)
 {
-    if(key_state[SDL_SCANCODE_W])
-        scene.camera.move(glm::vec3(-1.0f, -1.0f, 0.0f));
-    if(key_state[SDL_SCANCODE_A])
-        scene.camera.move(glm::vec3(1.0f, -1.0f, 0.0f));
-    if(key_state[SDL_SCANCODE_S])
-        scene.camera.move(glm::vec3(1.0f, 1.0f, 0.0f));
-    if(key_state[SDL_SCANCODE_D])
-        scene.camera.move(glm::vec3(-1.0f, 1.0f, 0.0f));
+    if(scene.camera.ortho)
+    {
+        if(key_state[SDL_SCANCODE_W])
+            scene.camera.move(glm::vec3(-1.0f, -1.0f, 0.0f));
+        if(key_state[SDL_SCANCODE_A])
+            scene.camera.move(glm::vec3(1.0f, -1.0f, 0.0f));
+        if(key_state[SDL_SCANCODE_S])
+            scene.camera.move(glm::vec3(1.0f, 1.0f, 0.0f));
+        if(key_state[SDL_SCANCODE_D])
+            scene.camera.move(glm::vec3(-1.0f, 1.0f, 0.0f));
+    }
+    else 
+    {
+        if(key_state[SDL_SCANCODE_W])
+            scene.camera.rotateWithOrigin(v2f{1.f, 0.f});
+        if(key_state[SDL_SCANCODE_A])
+            scene.camera.rotateWithOrigin(v2f{0.f, -1.f});
+        if(key_state[SDL_SCANCODE_S])
+            scene.camera.rotateWithOrigin(v2f{-1.f, 0.f});
+        if(key_state[SDL_SCANCODE_D])
+            scene.camera.rotateWithOrigin(v2f{0.f, 1.f});
+    }
 }
 
 void GameSystem::unitMovement(GAMESYSTEM_ARGS)
@@ -71,7 +85,6 @@ void GameSystem::terrainGeneration(GAMESYSTEM_ARGS)
             }
         }
         scene.terrain.getVisible(scene.camera);
-        scene.terrain.updateUniforms(renderer, scene.terrain.visible);
 }
 
 void RenderSystem::updateData(RENDERSYSTEM_ARGS)
@@ -93,6 +106,8 @@ void RenderSystem::updateData(RENDERSYSTEM_ARGS)
     };
 
     renderer.setBufferOfSize(scene.scene_uniform_buffer, &uniforms, sizeof(SceneUniforms));
+
+    scene.terrain.updateUniforms(renderer, scene.terrain.visible);
 
     for (int i = 0; i < 9; i++)
     {
@@ -132,6 +147,9 @@ void RenderSystem::terrain(RENDERSYSTEM_ARGS)
         
     for (int i = 0; i < 9; i++)
     {
+        if (!scene.terrain.visible[i])
+            continue;
+
         renderer.enqueueCommand(
                 DZRenderCommand::BindBuffer(
                     DZBufferBinding::Vertex(
@@ -151,6 +169,20 @@ void RenderSystem::terrain(RENDERSYSTEM_ARGS)
 void RenderSystem::models(RENDERSYSTEM_ARGS)
 {
     renderer.enqueueCommand(DZRenderCommand::SetPipeline(scene.model_pipeline));
+
+    renderer.enqueueCommand(
+            DZRenderCommand::BindBuffer(
+                    DZBufferBinding::Fragment(scene.scene_uniform_buffer, 0)
+                ));
+
+    renderer.enqueueCommand(
+            DZRenderCommand::BindBuffer(
+                    DZBufferBinding::Fragment(scene.light_buffer, 3)
+                ));
+    renderer.enqueueCommand(
+            DZRenderCommand::BindBuffer(
+                    DZBufferBinding::Vertex(scene.scene_uniform_buffer, 0)
+                ));
 
     scene.registry
         .view<Transform, Model>()

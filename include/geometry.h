@@ -60,7 +60,7 @@ struct v3
 
     inline double magnitude()
     {
-        std::sqrt(x * x + y * y + z * z);
+        return std::sqrt(x * x + y * y + z * z);
     }
 
     inline double distanceFrom(const v3 &other) const

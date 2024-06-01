@@ -20,6 +20,11 @@ DZRenderer::DZRenderer(SDL_Window *window)
 
     device = swapchain->device();
 
+    render_event = device->newSharedEvent();
+
+    render_event->signaledValue();
+    render_event->setSignaledValue(EVENT_INIT);
+
     queue = device->newCommandQueue();
 
     // TODO: What is this doing here?
@@ -45,6 +50,20 @@ DZRenderer::~DZRenderer()
     SDL_DestroyRenderer(sdl_renderer);
 }
 
+void DZRenderer::waitForRenderFinish()
+{
+    if (render_event->signaledValue() < EVENT_WAITING_FOR_RENDER)
+        return;
+
+    // TODO: use mutex, conditional_variable and a dispatch queue
+    while (render_event->signaledValue() != EVENT_RENDER_FINISH);
+
+    render_event->release();
+
+    render_event = device->newSharedEvent();
+    render_event->setSignaledValue(EVENT_INIT);
+}
+
 void DZRenderer::enqueueCommand(DZRenderCommand command)
 {
     this->command_queue.push_back(command);
@@ -54,6 +73,8 @@ void DZRenderer::executeCommandQueue()
 {
     NS::AutoreleasePool* auto_release_pool 
         = NS::AutoreleasePool::alloc()->init();
+
+    render_event->setSignaledValue(EVENT_WAITING_FOR_RENDER);
 
     CA::MetalDrawable *surface = swapchain->nextDrawable();
     auto pass_descriptor 
@@ -169,6 +190,9 @@ void DZRenderer::executeCommandQueue()
     encoder->endEncoding();
 
     buffer->presentDrawable(surface);
+
+    buffer->encodeSignalEvent(render_event, EVENT_RENDER_FINISH);
+
     buffer->commit();
 
     pass_descriptor->release();

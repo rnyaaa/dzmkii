@@ -12,6 +12,7 @@ struct ModelUniforms
     glm::mat4 model_matrix;
     bool textured;
     bool lit;
+    u32 material_index;
 };
 
 struct Model

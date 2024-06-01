@@ -5,6 +5,9 @@
 #include <cstring>
 #include <map>
 
+
+
+
 MeshData genMeshFromTiles(std::vector<Tile> tiles)
 {
     std::vector<Vertex> vertices;
@@ -29,17 +32,21 @@ MeshData genMeshFromTiles(std::vector<Tile> tiles)
 }
 
 Chunk::Chunk(
-        DZRenderer &renderer, 
         v2f chunk_start, 
         u32 seed, 
         f32 chunk_size
     )
+    : mesh_registered(false)
 {
     Log::verbose("Setting up chunk...");
 
     const f32 tile_width = chunk_size / TILES_PER_SIDE;
     const f32 startx = (f32) chunk_start.x;
     const f32 starty = (f32) chunk_start.y;
+
+    transform.pos = glm::vec3(chunk_start.x, chunk_start.y, 0.0);
+    transform.scale = glm::vec3(1.0f);
+    transform.rotation = glm::vec3(0.0);
 
     f32 perlin_scale = 0.005f;
     f32 noise_scale = 16.0f;
@@ -177,34 +184,52 @@ Chunk::Chunk(
         }
     }
 
+    for (u32 i = 0; i < TILES_PER_CHUNK; i++)
+    {
+        v2f pos = getPosFromTileIndex(i, tile_width);
+Log:;Log::verbose("POS: x-%f, y-%f", pos.x, pos.y);
+        if(pos.distanceFrom(v2f{0.0, 0.0}) > LAYER_SIZE)
+        {
+            material_indices[i] += 7;
+        }
+    }
+
     Log::verbose("\tGenerating mesh data...");
 
     MeshData mesh_data = genMeshFromTiles(tiles);
+    this->mesh_data = mesh_data;
+}
 
-    transform.pos = glm::vec3(chunk_start.x, chunk_start.y, 0.0);
-    transform.scale = glm::vec3(1.0f);
-    transform.rotation = glm::vec3(0.0);
-
-    Log::verbose("\tRegistering mesh with renderer...");
-
-    this->mesh = renderer.createMesh(mesh_data);
-    this->local_uniforms_buffer = renderer.createBufferOfSize(sizeof(ChunkData), StorageMode::MANAGED);
-
-    Log::verbose("\tMesh registered...");
+v2f Chunk::getPosFromTileIndex(u32 tile_index, f32 tile_width)
+{
+    u32 x = tile_index % TILES_PER_SIDE;
+    u32 y = tile_index / TILES_PER_SIDE; 
+    return v2f{transform.pos.x + x + tile_width, transform.pos.y + y * tile_width}; 
 }
 
 void Chunk::updateUniforms(DZRenderer &renderer, s32 chunk_index)
 {
-        ChunkData chunk_data;
+    if (!this->mesh_registered)
+    {
+        Log::verbose("\tRegistering mesh with renderer...");
+        this->mesh = renderer.createMesh(this->mesh_data);
+        this->local_uniforms_buffer = 
+            renderer.createBufferOfSize(sizeof(ChunkData), StorageMode::MANAGED);
+        this->mesh_registered = true;
 
-        chunk_data.chunk_index = chunk_index;
-        chunk_data.model_matrix = this->transform.asMat4();
+        Log::verbose("\tMesh registered...");
+    }
 
-        renderer.setBufferOfSize(
-                local_uniforms_buffer, 
-                &chunk_data, 
-                sizeof(ChunkData)
-            );
+    ChunkData chunk_data;
+
+    chunk_data.chunk_index = chunk_index;
+    chunk_data.model_matrix = this->transform.asMat4();
+
+    renderer.setBufferOfSize(
+            local_uniforms_buffer, 
+            &chunk_data, 
+            sizeof(ChunkData)
+        );
 }
 
 Terrain::Terrain(DZRenderer &renderer, f32 chunk_size, u32 seed)
@@ -223,6 +248,7 @@ Terrain::Terrain(DZRenderer &renderer, f32 chunk_size, u32 seed)
     this->terrain_uniform_buffer = renderer.createBufferOfSize(sizeof(MegaChunkData));
 
     memset(this->visible.data(), 0, sizeof(Chunk*) * 9);
+
     Log::verbose("Terrain established"); 
 }
 
@@ -257,7 +283,8 @@ void Terrain::createChunk(DZRenderer &renderer, glm::vec2 pos_in_chunk)
     }
 
     Log::verbose("\tCreating chunk...");
-    Chunk chunk(renderer, origin, seed, chunk_size);
+
+    Chunk chunk(origin, seed, chunk_size);
 
     this->chunks.emplace(origin, chunk);
 }
@@ -268,7 +295,7 @@ Chunk* Terrain::getChunkFromPos(v2f pos)
     if(this->chunks.contains(origin))
     {
         // [] operator requires a default cosntructor for Chunk
-        // so instead of &this->chunks[origin] we have:
+        // so instead of &this->chunks[origin]
         return &this->chunks.find(origin)->second;
     }
     return nullptr;
@@ -422,10 +449,12 @@ void Terrain::getVisible(Camera &camera)
     visible = new_visible;
 }
 
-void Terrain::updateUniforms(DZRenderer &renderer, std::array<Chunk*, 9> visible)
+void Terrain::updateUniforms(DZRenderer &renderer, std::array<Chunk*, 9> visible) const
 {
-        MegaChunkData mega_chunk_data;
-        for (int i = 0; i < 9; i++)
+    MegaChunkData mega_chunk_data;
+    for (int i = 0; i < 9; i++)
+    {
+        if (visible[i])
         {
             memcpy(
                     &mega_chunk_data.material_indices[i * TILES_PER_SIDE * TILES_PER_SIDE],
@@ -438,10 +467,11 @@ void Terrain::updateUniforms(DZRenderer &renderer, std::array<Chunk*, 9> visible
                     TILES_PER_SIDE * TILES_PER_SIDE
                 );
         }
-
-        renderer.setBufferOfSize(
-                terrain_uniform_buffer, 
-                &mega_chunk_data, 
-                sizeof(MegaChunkData)
-            );
     }
+
+    renderer.setBufferOfSize(
+            terrain_uniform_buffer, 
+            &mega_chunk_data, 
+            sizeof(MegaChunkData)
+        );
+}
