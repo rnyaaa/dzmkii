@@ -10,13 +10,11 @@
 #include <SDL.h>
 
 #include <chrono>
-#include <iostream>
-#include <fstream>
 #include <optional>
-#include <sstream>
 #include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <future>
 
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
@@ -31,13 +29,10 @@
 #include "camera.h"
 #include "asset.h"
 #include "terrain.h"
-#include "texture.h"
 #include "model.h"
 #include "term_renderer.h"
 #include "entity.h"
 #include "geometry.h"
-#include "factory.h"
-#include "light.h"
 #include "scene.h"
 #include "systems.h"
 #include "input.h"
@@ -245,14 +240,26 @@ int main(int argc, char *argv[])
 
     };
 
+    std::vector<std::future<TextureData>> texture_datas_futures;
     std::vector<TextureData> texture_datas;
 
     for (const auto &tex_path : texture_paths)
     {
-        texture_datas.push_back(ass_man.getTexture(tex_path + "-albedo.png").value());
-        texture_datas.push_back(ass_man.getTexture(tex_path + "-normal.png").value());
-        texture_datas.push_back(ass_man.getTexture(tex_path + "-displacement.png").value());
+        texture_datas_futures.push_back(
+                std::async(std::launch::async, [&]{ return ass_man.getTexture(tex_path + "-albedo.png").value(); }));
+        texture_datas_futures.push_back(
+                std::async(std::launch::async, [&]{ return ass_man.getTexture(tex_path + "-normal.png").value(); }));
+        texture_datas_futures.push_back(
+                std::async(std::launch::async, [&]{ return ass_man.getTexture(tex_path + "-displacement.png").value(); }));
     }
+
+    for (auto &future : texture_datas_futures)
+    {
+        future.wait();
+        texture_datas.push_back(future.get());
+    }
+
+    texture_datas_futures.clear();
 
     DZTextureArray tex_array = renderer.createTextureArray(texture_datas);
 
