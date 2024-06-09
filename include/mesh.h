@@ -32,12 +32,16 @@ struct MeshData
 
     static MeshData UnitPlane()
     {
+        auto vert = 
+            Vertex()
+                .withNormal(glm::vec3(0.0f, 0.0f, 1.0f));
+
         return {
             {
-                Vertex().withPos(glm::vec3(0.0f, 0.0f, 0.0f)),
-                Vertex().withPos(glm::vec3(1.0f, 0.0f, 0.0f)),
-                Vertex().withPos(glm::vec3(1.0f, 1.0f, 0.0f)),
-                Vertex().withPos(glm::vec3(0.0f, 1.0f, 0.0f)),
+                vert.withPos(glm::vec3(0.0f, 0.0f, 0.0f)),
+                vert.withPos(glm::vec3(1.0f, 0.0f, 0.0f)),
+                vert.withPos(glm::vec3(1.0f, 1.0f, 0.0f)),
+                vert.withPos(glm::vec3(0.0f, 1.0f, 0.0f)),
             },
             { 0, 1, 2, 0, 3, 2 },
             PrimitiveType::TRIANGLE
@@ -48,6 +52,7 @@ struct MeshData
 
     static MeshData UnitSquare()
     {
+        // TODO: NORMALS
         return {
             { 
                 Vertex()

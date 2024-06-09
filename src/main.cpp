@@ -40,6 +40,7 @@
 #include "light.h"
 #include "scene.h"
 #include "systems.h"
+#include "input.h"
 
 #define SDL_ERR(msg) \
     printf("[ERROR] %s\n\t%s\n", msg, SDL_GetError())
@@ -60,6 +61,7 @@ struct World
 
 int main(int argc, char *argv[])
 {
+    // INITIALIZE WINDOW
     // TODO: Set log level with option or defines
     Log::setLogLevel(Log::LogLevel::VERBOSE);
 
@@ -78,11 +80,14 @@ int main(int argc, char *argv[])
             | SDL_WINDOW_BORDERLESS
         );
 
-
     if (window == NULL)
         SDL_ERR("SDL_Window could not be created!");
 
+    // INITIALIZE ASSET MANAGER
+
     AssetManager ass_man;
+
+    // INITIALIZE RENDERING
 
     auto gui_shader_src = *ass_man.getTextFile("shaders/gui_shader.metal");
     auto basic_shader_src = *ass_man.getTextFile("shaders/basic_shader.metal");
@@ -119,153 +124,164 @@ int main(int argc, char *argv[])
     ass_man.addSearchDirectory("resources/new/5-mossy-pos");
     ass_man.addSearchDirectory("resources/new/6-darkmoss-pospos");
     ass_man.addSearchDirectory("resources/new/7-undergrowth-pospospos");
-
+                                       
+    ass_man.addSearchDirectory("resources/new/rainforest/");                                       
+    ass_man.addSearchDirectory("resources/new/rainforest/1 - tarryoil");                               
+    ass_man.addSearchDirectory("resources/new/rainforest/2 - tarryblack"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/3 - rainundergrowth"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/4 - forestgore"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/5 - bloodvines"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/6 - redvein"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/7 - veinmass"); 
+ 
+    ass_man.addSearchDirectory("resources/new/coldlands/");
+    ass_man.addSearchDirectory("resources/new/coldlands/1 - bogfrost");
+    ass_man.addSearchDirectory("resources/new/coldlands/2 - frozen");
+    ass_man.addSearchDirectory("resources/new/coldlands/3 - permafrost");
+    ass_man.addSearchDirectory("resources/new/coldlands/4 - boggytundragrass");
+    ass_man.addSearchDirectory("resources/new/coldlands/5 - coldbog");
+    ass_man.addSearchDirectory("resources/new/coldlands/6 - sparserocks");
+    ass_man.addSearchDirectory("resources/new/coldlands/7 - rocks");
+ 
+    ass_man.addSearchDirectory("resources/new/desertlands/");
+    ass_man.addSearchDirectory("resources/new/desertlands/1 - greener");
+    ass_man.addSearchDirectory("resources/new/desertlands/2 - straw");
+    ass_man.addSearchDirectory("resources/new/desertlands/3 - sparse");
+    ass_man.addSearchDirectory("resources/new/desertlands/4 - sand");
+    ass_man.addSearchDirectory("resources/new/desertlands/5 - rockier");
+    ass_man.addSearchDirectory("resources/new/desertlands/6 - boulders");
+    ass_man.addSearchDirectory("resources/new/desertlands/7 - grayrockface");
+ 
+    ass_man.addSearchDirectory("resources/new/gravelands/");
+    ass_man.addSearchDirectory("resources/new/gravelands/1 - allbones");
+    ass_man.addSearchDirectory("resources/new/gravelands/2 - bones");
+    ass_man.addSearchDirectory("resources/new/gravelands/3 - gravedirt");
+    ass_man.addSearchDirectory("resources/new/gravelands/4 - deadgrass");
+    ass_man.addSearchDirectory("resources/new/gravelands/5 - sparsedirt");
+    ass_man.addSearchDirectory("resources/new/gravelands/6 - needles");
+    ass_man.addSearchDirectory("resources/new/gravelands/7 - pineundergrowth");
+ 
+    ass_man.addSearchDirectory("resources/new/meatlands/");
+    ass_man.addSearchDirectory("resources/new/meatlands/1 - vastmembrane");
+    ass_man.addSearchDirectory("resources/new/meatlands/2 - biggerorgans"); 
+    ass_man.addSearchDirectory("resources/new/meatlands/3 - organy");
+    ass_man.addSearchDirectory("resources/new/meatlands/4 - meat");
+    ass_man.addSearchDirectory("resources/new/meatlands/5 - morebloodguts");
+    ass_man.addSearchDirectory("resources/new/meatlands/6 - bloodier"); 
+    ass_man.addSearchDirectory("resources/new/meatlands/7 - bloodeverywhere");                    
+ 
     ass_man.addSearchDirectory("resources/new/badlands/");
-    ass_man.addSearchDirectory("resources/new/badlands/1 - brickwork mossy fungusy ruins");
-    ass_man.addSearchDirectory("resources/new/badlands/2-burnt undergrowth, charred sticks(2)");
-    ass_man.addSearchDirectory("resources/new/badlands/3 - burnt undergrowth, charred sticks burnt dark moss");
-    ass_man.addSearchDirectory("resources/new/badlands/4 - dead ground smoldering ground burnt grass, charred dirt. black and evil earth.");
-    ass_man.addSearchDirectory("resources/new/badlands/5 - dry, cracks. green ooze in cracks.");
-    ass_man.addSearchDirectory("resources/new/badlands/6 - dirt. wet green ooze around. bright green.");
-    ass_man.addSearchDirectory("resources/new/badlands/7 - all ooze, some dirt pokes out, putrid");
-
-//   ass_man.addSearchDirectory("resources/new/meatlands/");
-//   ass_man.addSearchDirectory("resources/new/meatlands/1 - vastmembrane");
-//   ass_man.addSearchDirectory("resources/new/meatlands/2 - biggerorgans");
-//   ass_man.addSearchDirectory("resources/new/meatlands/3 - organy");
-//   ass_man.addSearchDirectory("resources/new/meatlands/4 - meat");
-//   ass_man.addSearchDirectory("resources/new/meatlands/5 - more blood guts");
-//   ass_man.addSearchDirectory("resources/new/meatlands/6 - bloodier");
-//   ass_man.addSearchDirectory("resources/new/meatlands/7 - blood everywhere");
-//
-//   ass_man.addSearchDirectory("resources/new/rainforest/");
-//   ass_man.addSearchDirectory("resources/new/rainforest/1 - "); 
-//   ass_man.addSearchDirectory("resources/new/rainforest/2 - "); 
-//   ass_man.addSearchDirectory("resources/new/rainforest/3 - "); 
-//   ass_man.addSearchDirectory("resources/new/rainforest/4 - "); 
-//   ass_man.addSearchDirectory("resources/new/rainforest/5 - "); 
-//   ass_man.addSearchDirectory("resources/new/rainforest/6 - "); 
-//   ass_man.addSearchDirectory("resources/new/rainforest/6 - "); 
-//
-//   ass_man.addSearchDirectory("resources/new/badlands/");
-//   ass_man.addSearchDirectory("resources/new/badlands/1 - ");
-//   ass_man.addSearchDirectory("resources/new/badlands/2 - ");
-//   ass_man.addSearchDirectory("resources/new/badlands/3 - ");
-//   ass_man.addSearchDirectory("resources/new/badlands/4 - ");
-//   ass_man.addSearchDirectory("resources/new/badlands/5 - ");
-//   ass_man.addSearchDirectory("resources/new/badlands/6 - ");
-//   ass_man.addSearchDirectory("resources/new/badlands/6 - ");
-
-
-
+    ass_man.addSearchDirectory("resources/new/badlands/1 - brick");
+    ass_man.addSearchDirectory("resources/new/badlands/2 - burnt");
+    ass_man.addSearchDirectory("resources/new/badlands/3 - burntmoss");
+    ass_man.addSearchDirectory("resources/new/badlands/4 - deadground");
+    ass_man.addSearchDirectory("resources/new/badlands/5 - cracksooze");
+    ass_man.addSearchDirectory("resources/new/badlands/6 - dirtooze");
+    ass_man.addSearchDirectory("resources/new/badlands/7 - ooze");
 
     std::vector<std::string> texture_paths = {
-        "alldirt-albedo.png",    
-        "alldirt-normal.png",    
-        "moredirt-albedo.png",    
-        "moredirt-normal.png", 
-        "bitdirt-albedo.png",
-        "bitdirt-normal.png",
-        "grassy-albedo.png",    
-        "grassy-normal.png",    
-        "mossy-albedo.png",    
-        "mossy-normal.png",
-        "darkmoss-albedo.png",
-        "darkmoss-normal.png",
-        "undergrowth-albedo.png",
-        "undergrowth-normal.png",
+        // DEFAULT 0-6
+        "alldirt",
+        "moredirt",
+        "bitdirt",
+        "grassy",
+        "mossy",
+        "darkmoss",
+        "undergrowth",
 
-        "brick-albedo.png",    
-        "brick-normal.png",    
-        "burnt-albedo.png",    
-        "burnt-normal.png",
-        "burntmoss-albedo.png",
-        "burntmoss-normal.png",
-        "deadground-albedo.png",  
-        "deadground-normal.png",    
-        "cracksooze-albedo.png",    
-        "cracksooze-normal.png",
-        "dirtooze-albedo.png",
-        "dirtooze-normal.png",
-        "ooze-albedo.png",
-        "ooze-normal.png",
+        // RAINFOREST 7-13
+        "tarryoil",
+        "tarryblack",
+        "rainundergrowth",
+        "forestgore",
+        "bloodvines",
+        "redvein",
+        "veinmass",
 
-//       ".png",    
-//       ".png",    
-//       ".png",    
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",  
-//       ".png",    
-//       ".png",    
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",
-//
-//       ".png",    
-//       ".png",    
-//       ".png",    
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",  
-//       ".png",    
-//       ".png",    
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",
-//
-//       ".png",    
-//       ".png",    
-//       ".png",    
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",  
-//       ".png",    
-//       ".png",    
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",
-//       ".png",
+        // COLDLANDS 13-20
+        "bogfrost",
+        "frozen",
+        "permafrost",
+        "boggytundragrass",
+        "coldbog",
+        "sparserocks",
+        "rocks",
+
+        // SANDLANDS 21-27
+        "greener",
+        "straw",
+        "sparse",
+        "sand",
+        "rockier",
+        "boulders",
+        "grayrockface",
+
+        // GRAVELANDS 28-34
+        "allbones",
+        "bones",
+        "gravedirt",
+        "deadgrass",
+        "sparsedirt",
+        "needles",
+        "pineundergrowth",
+
+        // MEATLANDS 35 - 41
+        "vastmembrane",
+        "biggerorgans",
+        "organy",
+        "meat",
+        "morebloodguts",
+        "bloodier",
+        "bloodeverywhere",
+
+        // BADLANDS 42-48
+        "brick",
+        "burnt",
+        "burntmoss",
+        "deadground",
+        "cracksooze",
+        "dirtooze",
+        "ooze",
+
     };
 
     std::vector<TextureData> texture_datas;
 
     for (const auto &tex_path : texture_paths)
     {
-        texture_datas.push_back(ass_man.getTexture(tex_path).value());
+        texture_datas.push_back(ass_man.getTexture(tex_path + "-albedo.png").value());
+        texture_datas.push_back(ass_man.getTexture(tex_path + "-normal.png").value());
+        texture_datas.push_back(ass_man.getTexture(tex_path + "-displacement.png").value());
     }
 
     DZTextureArray tex_array = renderer.createTextureArray(texture_datas);
 
-    const u8 *key_state = SDL_GetKeyboardState(nullptr);
-    u8 *prev_key_state = (u8 *) malloc(SDL_NUM_SCANCODES);
+    // CREATE WORLD
 
     World world {
-        Scene(renderer, terrain_pipeline, basic_pipeline),
+        Scene(renderer, terrain_pipeline, basic_pipeline, gui_pipeline),
         {},
         {}
     };
 
-    world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, 0.0f));
-    world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, -100.0f));
-    world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, 0.0f));
-    world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, -100.0f));
+    // INITIALIZE TERRAIN AND WORLD REGISTRY
+
+    world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, 0.0f), world.scene.terrain.biomepoints);
+    world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, -100.0f), world.scene.terrain.biomepoints);
+    world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, 0.0f), world.scene.terrain.biomepoints);
+    world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, -100.0f), world.scene.terrain.biomepoints);
 
     const entt::entity c = world.scene.registry.create();
+
+    // CREATE DEBUG UNITS 
+    
     Transform trans;
     trans.pos = glm::vec3(0.0f, 0.0f, 0.0f);
 
     world.scene.registry.emplace<Transform>(c, trans);
     world.scene.registry.emplace<LineOfSight>(c, 5u);
     world.scene.registry.emplace<MoveSpeed>(c, 5u);
+
     auto loser_plane_data = MeshData::UnitPlane();
     loser_plane_data.translate(glm::vec3(-0.5, -0.5, 0.0));
     DZMesh loser_mesh = renderer.createMesh(loser_plane_data);
@@ -282,22 +298,9 @@ int main(int argc, char *argv[])
         world.scene.registry.emplace<MoveSpeed>(c, rand() % 10u + 2u);
     }
 
-    AArect2i selection;
-    selection.pos = {0, 0};
-    selection.dim = {0, 0};
+    // SET WORLD SYSTEMS
 
-    Model selection_rect_model = 
-        Model::fromMeshDatas(renderer, { MeshData::UnitSquare() });
-
-    SDL_Event e;
-    bool mouse_held = false;
-    int x_start, y_start;
-    int x_curr, y_curr;
-
-    Transform selection_rect_transform;
-
-    double delta_time = 0.0;
-
+    world.game_systems.push_back(&GameSystem::inputActions);
     world.game_systems.push_back(&GameSystem::cameraMovement);
     world.game_systems.push_back(&GameSystem::terrainGeneration);
     world.game_systems.push_back(&GameSystem::unitMovement);
@@ -306,23 +309,22 @@ int main(int argc, char *argv[])
     world.render_systems.push_back(&RenderSystem::updateData);
     world.render_systems.push_back(&RenderSystem::terrain);
     world.render_systems.push_back(&RenderSystem::models);
+    world.render_systems.push_back(&RenderSystem::gui);
     
     World *curr_world;
-
     curr_world = &world;
     
 
-    // // // ALL  WORLD CREATE \\ \\ \\
+    // DEBUG WORLD
 
     World alt_world = {
-        Scene(renderer, terrain_pipeline, basic_pipeline),
+        Scene(renderer, terrain_pipeline, basic_pipeline, gui_pipeline),
         {},
         {}
     };
 
     alt_world.scene.camera.ortho = false;
-
-    alt_world.game_systems.push_back(&GameSystem::cameraMovement);
+    alt_world.game_systems.push_back(&GameSystem::debugControl);
     alt_world.render_systems.push_back(&RenderSystem::updateData);
     alt_world.render_systems.push_back(&RenderSystem::models);
 
@@ -334,56 +336,19 @@ int main(int argc, char *argv[])
     alt_world.scene.registry.emplace<Model>(plane_entity, plane_model);
     alt_world.scene.registry.emplace<Transform>(plane_entity);
 
+    // INITIALIZE THINGIES
+
+    GUI gui;
+    gui.selection_rect_model = Model::fromMeshDatas(renderer, { MeshData::UnitSquare() });
+    SDL_Event e;
+    InputState input;
+    double delta_time = 0.0;
+
     while(true)
     {
         const auto frame_start = std::chrono::steady_clock::now();
-
-        while (SDL_PollEvent(&e))
-        {
-            if (e.type == SDL_QUIT) 
-                goto quit;
-
-            if(e.type == SDL_MOUSEWHEEL)
-            {
-
-                if(!curr_world->scene.camera.ortho)
-                {                    
-                    glm::vec3 position = curr_world->scene.camera.position;
-                    glm::vec3 target   = curr_world->scene.camera.target;
-                    glm::vec3 toTarget = target - position;
-
-                    f32 distTarget = toTarget.length();
-
-                    f32 scroll_dir = e.wheel.y > 0 ? -1.0f : 1.0f;
-
-                    if (toTarget.length() > 10.0f, toTarget.length() < 100.0f)
-                    {
-                        curr_world->scene.camera.position 
-                            += toTarget * scroll_dir * (toTarget.length() * toTarget.length() / 100.0f);
-                    }
-                } 
-                else 
-                {
-                    curr_world->scene.camera.zoom(e.wheel.y > 0 ? -1.0f : 1.0f);
-                }
-            } 
-
-            if(e.type == SDL_MOUSEBUTTONDOWN)
-            {
-                SDL_GetMouseState(&x_start, &y_start);
-                mouse_held = true;
-
-                selection.pos = v2i {x_start, y_start};
-                Log::verbose("Mouse button down");
-            }
-
-            if(e.type == SDL_MOUSEBUTTONUP)
-            {
-                mouse_held = false;
-                Log::verbose("Mouse button up");
-            }
-        }
-
+        input.update();
+ 
         s32 window_width, window_height;
         SDL_GetWindowSize(window, &window_width, &window_height);
         glm::vec2 screen_dim(
@@ -391,28 +356,11 @@ int main(int argc, char *argv[])
                 (float) (window_height)
             );
 
-        SDL_GetMouseState(&x_curr, &y_curr);
 
-        if (mouse_held)
-        {
-            selection.dim = v2i { x_curr - x_start, y_curr - y_start };
-            selection_rect_transform.pos = glm::vec3(
-                        (selection.pos.x / screen_dim.x * 2.0f) - 1.0f, 
-                    (-selection.pos.y / screen_dim.y * 2.0f) + 1.0f, 
-                    0.0);
-            selection_rect_transform.scale = glm::vec3(
-                    selection.dim.x / screen_dim.x * 2.0f, 
-                    -selection.dim.y / screen_dim.y * 2.0f, 
-                    0.0);
-        }
-
-        if (key_state[SDL_SCANCODE_ESCAPE])
+        if (input.quit)
             goto quit;
 
-        if (key_state[SDL_SCANCODE_C])
-            curr_world->scene.terrain.chunks.clear();
-
-        if (key_state[SDL_SCANCODE_F] && !prev_key_state[SDL_SCANCODE_F])
+        if (input.key[DZKey::F] && !input.key_prev[DZKey::F])
         {
             if (curr_world == &world)
                 curr_world = &alt_world;
@@ -423,19 +371,10 @@ int main(int argc, char *argv[])
         renderer.waitForRenderFinish();
 
         for (auto system : curr_world->game_systems)
-            system(renderer, curr_world->scene, key_state, delta_time);
+            system(renderer, curr_world->scene, input, gui, delta_time);
    
         for (auto system : curr_world->render_systems)
-            system(renderer, curr_world->scene, screen_dim);
-        
-        
-        renderer.enqueueCommand(
-                DZRenderCommand::SetPipeline(gui_pipeline));
-
-        if (mouse_held)
-        {
-            selection_rect_model.render(renderer, selection_rect_transform);
-        }
+            system(renderer, curr_world->scene, input, screen_dim, gui);
 
         renderer.executeCommandQueue();
 
@@ -443,8 +382,6 @@ int main(int argc, char *argv[])
         const std::chrono::duration<double> frame_delta = frame_end - frame_start;
 
         delta_time = frame_delta.count();
-
-        memcpy(prev_key_state, key_state, SDL_NUM_SCANCODES);
     }
 
 quit:

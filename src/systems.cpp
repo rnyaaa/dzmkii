@@ -1,3 +1,6 @@
+#include "input.h"
+#include "logger.h"
+#include <SDL_scancode.h>
 #define GLM_SWIZZLE
 #include "systems.h"
 #include "model.h"
@@ -5,30 +8,84 @@
 #include "light.h"
 #include "movement.h"
 
+
+void GameSystem::inputActions(GAMESYSTEM_ARGS)
+{
+    if(input.mouse.left_button_down && !input.mouse_prev.left_button_down)
+    {
+        gui.selection.pos = v2i{input.mouse.pos.x, input.mouse.pos.y};
+    }
+
+    if (input.key[DZKey::C])
+        scene.terrain.chunks.clear();
+}
+
+void GameSystem::debugControl(GAMESYSTEM_ARGS)
+{
+    // ZOOM
+    glm::vec3 position = scene.camera.position;
+    glm::vec3 target   = scene.camera.target;
+    glm::vec3 toTarget = target - position;
+    f32 distTarget = toTarget.length();
+    f32 scroll_dir = std::abs(input.mouse.wheel_delta) * input.mouse.wheel_delta > 0 ? -1.0f : 1.0f;
+
+    if (toTarget.length() > 10.0f, toTarget.length() < 100.0f)
+    {
+        scene.camera.position 
+            += toTarget * scroll_dir * (toTarget.length() * toTarget.length() / 100.0f);
+    }
+
+    // WASD
+    if(input.key[DZKey::W])
+        scene.camera.rotateWithOrigin(v2f{1.f, 0.f});
+    if(input.key[DZKey::A])
+        scene.camera.rotateWithOrigin(v2f{0.f, -1.f});
+    if(input.key[DZKey::S])
+        scene.camera.rotateWithOrigin(v2f{-1.f, 0.f});
+    if(input.key[DZKey::D])
+        scene.camera.rotateWithOrigin(v2f{0.f, 1.f});
+
+    // ARROW KEYS
+    scene.registry
+        .view<Transform>()
+        .each(
+                [&](auto &transform)
+                {
+                    if(input.key[DZKey::UP])
+                        transform.rotation.x += 0.5f * delta_time;
+                    if(input.key[DZKey::DOWN])
+                        transform.rotation.x -= 0.5f * delta_time;
+                    if(input.key[DZKey::RIGHT])
+                        transform.rotation.z += 0.5f * delta_time;
+                    if(input.key[DZKey::LEFT])
+                        transform.rotation.z -= 0.5f * delta_time;
+                }
+            );
+
+    // CHANGE TEXTURE
+    if(input.key[DZKey::N] && !input.key_prev[DZKey::N])
+    {
+        scene.debug_texture += 2;
+        scene.debug_texture %= 28;
+    }
+}
+
 void GameSystem::cameraMovement(GAMESYSTEM_ARGS)
 {
-    if(scene.camera.ortho)
-    {
-        if(key_state[SDL_SCANCODE_W])
-            scene.camera.move(glm::vec3(-1.0f, -1.0f, 0.0f));
-        if(key_state[SDL_SCANCODE_A])
-            scene.camera.move(glm::vec3(1.0f, -1.0f, 0.0f));
-        if(key_state[SDL_SCANCODE_S])
-            scene.camera.move(glm::vec3(1.0f, 1.0f, 0.0f));
-        if(key_state[SDL_SCANCODE_D])
-            scene.camera.move(glm::vec3(-1.0f, 1.0f, 0.0f));
-    }
-    else 
-    {
-        if(key_state[SDL_SCANCODE_W])
-            scene.camera.rotateWithOrigin(v2f{1.f, 0.f});
-        if(key_state[SDL_SCANCODE_A])
-            scene.camera.rotateWithOrigin(v2f{0.f, -1.f});
-        if(key_state[SDL_SCANCODE_S])
-            scene.camera.rotateWithOrigin(v2f{-1.f, 0.f});
-        if(key_state[SDL_SCANCODE_D])
-            scene.camera.rotateWithOrigin(v2f{0.f, 1.f});
-    }
+    // ZOOM
+    scene.camera.zoom(
+        std::abs(input.mouse.wheel_delta) * (input.mouse.wheel_delta > 0 ? -1.0f : 1.0f)
+    );
+
+    // WASD
+    if(input.key[DZKey::W])
+        scene.camera.move(glm::vec3(-1.0f, -1.0f, 0.0f));
+    if(input.key[DZKey::A])
+        scene.camera.move(glm::vec3(1.0f, -1.0f, 0.0f));
+    if(input.key[DZKey::S])
+        scene.camera.move(glm::vec3(1.0f, 1.0f, 0.0f));
+    if(input.key[DZKey::D])
+        scene.camera.move(glm::vec3(-1.0f, 1.0f, 0.0f));
 }
 
 void GameSystem::unitMovement(GAMESYSTEM_ARGS)
@@ -81,7 +138,7 @@ void GameSystem::terrainGeneration(GAMESYSTEM_ARGS)
         {
             for (int j = -1; j <= 1; j++)
             {
-                scene.terrain.createChunk(renderer, scene.camera.target.xy() + glm::vec2(i * 100.0f, j * 100.0f));
+                scene.terrain.createChunk(renderer, scene.camera.target.xy() + glm::vec2(i * 100.0f, j * 100.0f), scene.terrain.biomepoints);
             }
         }
         scene.terrain.getVisible(scene.camera);
@@ -91,9 +148,9 @@ void RenderSystem::updateData(RENDERSYSTEM_ARGS)
 {
 
     DynamicPointLightData light_data = { 
-        scene.camera.target,
+        glm::vec3(0.0f, 0.0f, 1.0f),
         glm::vec3(1.0),
-        9.0f
+        10.0f
     };
 
     renderer
@@ -102,7 +159,8 @@ void RenderSystem::updateData(RENDERSYSTEM_ARGS)
     SceneUniforms uniforms = {
         scene.camera.getCameraData(screen_dim),
         scene.sun.dir,
-        1
+        1,
+        scene.debug_texture
     };
 
     renderer.setBufferOfSize(scene.scene_uniform_buffer, &uniforms, sizeof(SceneUniforms));
@@ -177,11 +235,12 @@ void RenderSystem::models(RENDERSYSTEM_ARGS)
 
     renderer.enqueueCommand(
             DZRenderCommand::BindBuffer(
-                    DZBufferBinding::Fragment(scene.light_buffer, 3)
+                    DZBufferBinding::Vertex(scene.scene_uniform_buffer, 0)
                 ));
+
     renderer.enqueueCommand(
             DZRenderCommand::BindBuffer(
-                    DZBufferBinding::Vertex(scene.scene_uniform_buffer, 0)
+                    DZBufferBinding::Fragment(scene.light_buffer, 3)
                 ));
 
     scene.registry
@@ -192,4 +251,24 @@ void RenderSystem::models(RENDERSYSTEM_ARGS)
                     model.render(renderer, transform);
                 }
             );
+}
+
+void RenderSystem::gui(RENDERSYSTEM_ARGS)
+{
+    if (input.mouse.left_button_down)
+    {
+        gui.selection.dim = v2i {input.mouse.pos.x - gui.selection.pos.x, input.mouse.pos.y - gui.selection.pos.y};
+        gui.selection_rect_transform.pos = glm::vec3(
+                    (gui.selection.pos.x / screen_dim.x * 2.0f) - 1.0f, 
+                (-gui.selection.pos.y / screen_dim.y * 2.0f) + 1.0f, 
+                0.0);
+        gui.selection_rect_transform.scale = glm::vec3(
+                gui.selection.dim.x / screen_dim.x * 2.0f, 
+                -gui.selection.dim.y / screen_dim.y * 2.0f, 
+                0.0);
+
+        renderer.enqueueCommand(
+                DZRenderCommand::SetPipeline(scene.gui_pipeline));
+        gui.selection_rect_model.render(renderer, gui.selection_rect_transform);
+    }
 }

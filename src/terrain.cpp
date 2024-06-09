@@ -1,11 +1,14 @@
 #include "terrain.h"
+#include "input.h"
 #include "logger.h"
 #include "renderer.h"
 #include "geometry.h"
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <map>
 
-
+#include <time.h>    
 
 
 MeshData genMeshFromTiles(std::vector<Tile> tiles)
@@ -34,7 +37,8 @@ MeshData genMeshFromTiles(std::vector<Tile> tiles)
 Chunk::Chunk(
         v2f chunk_start, 
         u32 seed, 
-        f32 chunk_size
+        f32 chunk_size,
+        std::array<BiomePoint, VORONOI_BIOMES> bpoints
     )
     : mesh_registered(false)
 {
@@ -51,6 +55,8 @@ Chunk::Chunk(
     f32 perlin_scale = 0.005f;
     f32 noise_scale = 16.0f;
     u32 octaves = 9;
+
+    srand(seed);
 
     const siv::PerlinNoise perlin(seed);
 
@@ -82,7 +88,7 @@ Chunk::Chunk(
 
             for (u32 i = 0; i < 4; i++)
             {
-                f32 noise = noise_scale * perlin.octave2D((startx + corners[i].x) * perlin_scale, (starty + corners[i].y) * perlin_scale, octaves);
+                f32 noise = noise_scale * std::powf(perlin.octave2D((startx + corners[i].x) * perlin_scale, (starty + corners[i].y) * perlin_scale, octaves), 2);
                 corners[i].z = noise;
             }
 
@@ -142,43 +148,53 @@ Chunk::Chunk(
             for (u32 k = 0; k < 4; k++)
             {
                 // TODO: Fix this one weird thing doctors (jklmn, ronja) hate
-                f32 _perlin_scale = perlin_scale * 1.5;
+                f32 _perlin_scale = perlin_scale;
                 f32 _noise_scale = noise_scale;
-                u32 _octaves = 10;
+                u32 _octaves = 200;
                 int otherseed = 1010620;
                 const siv::PerlinNoise otherperlin(otherseed);
                 f32 noise = _noise_scale * otherperlin.octave2D((startx + tile.vertices[k].pos.x) * _perlin_scale, (starty + tile.vertices[k].pos.y) * perlin_scale, _octaves);
-                if(noise <= -2.25)
+                //Log::verbose("noise: %f", noise);
+                if(noise <= -4.5)
                 {
-                    this->material_indices[j * TILES_PER_SIDE + i] = 0;
+                    // TODO: make perlin, not seeded noise
+                    u32 chance = rand() % 10;
+                    if(chance >= 5)
+                        this->material_indices[j * TILES_PER_SIDE + i] = 0;
+                    else
+                        this->material_indices[j * TILES_PER_SIDE + i] = 1;
                 } 
-                else if (noise > -2.25 && noise <= -1.5) 
+                else if (noise <= -3.5) 
                 {
                     this->material_indices[j * TILES_PER_SIDE + i] = 1;
                 }
-                else if (noise > -1.5 && noise <= -0.75) 
+                else if (noise <= -2.0) 
                 {
                     this->material_indices[j * TILES_PER_SIDE + i] = 2;
                 }
 
-                else if (noise > -0.75 && noise <= 1.0) 
+                else if (noise <= 2.0) 
                 {
                     this->material_indices[j * TILES_PER_SIDE + i] = 3;
                 }
 
-                else if (noise > 1.0 && noise <= 1.75) 
+                else if (noise <= 4.0) 
                 {
                     this->material_indices[j * TILES_PER_SIDE + i] = 4;
                 }
 
-                else if (noise > 1.75 && noise <= 2.5) 
+                else if (noise <= 6.5) 
                 {
                     this->material_indices[j * TILES_PER_SIDE + i] = 5;
                 }
 
-                else if (noise > 2.5) 
+                else if (noise > 8.5) 
                 {
-                    this->material_indices[j * TILES_PER_SIDE + i] = 6;
+                    u32 chance = rand() % 10;
+                    if(chance >= 5)
+                        this->material_indices[j * TILES_PER_SIDE + i] = 6;
+                    else
+                        this->material_indices[j * TILES_PER_SIDE + i] = 5;
                 }
             }
         }
@@ -186,13 +202,46 @@ Chunk::Chunk(
 
     for (u32 i = 0; i < TILES_PER_CHUNK; i++)
     {
+        //float xpos = i / TILES_PER_CHUNK + startx;
+        //float ypos = i % TILES_PER_CHUNK + starty;
         v2f pos = getPosFromTileIndex(i, tile_width);
-Log:;Log::verbose("POS: x-%f, y-%f", pos.x, pos.y);
-        if(pos.distanceFrom(v2f{0.0, 0.0}) > LAYER_SIZE)
+
+        double reciprocal_distance_table[NUM_BIOMES] = {};
+        double total_reciprocal_distances = 0.0;
+        memset(reciprocal_distance_table, 0, sizeof(double) * NUM_BIOMES);
+
+        for(auto bp : bpoints)
         {
-            material_indices[i] += 7;
+            double recip_dist = std::pow((1.0 / bp.position.distanceFrom(pos)), 4.0);
+            reciprocal_distance_table[bp.biome] += recip_dist;
+            total_reciprocal_distances += recip_dist;
         }
+
+        double biome_selector = ((double)rand() / RAND_MAX) * total_reciprocal_distances;
+
+        double max_so_far = -INFINITY;
+
+        u8 selected_biome = 0;
+
+        for (u32 j = 0; j < NUM_BIOMES; j++)
+        {
+            //if (reciprocal_distance_table[j] > max_so_far)
+            //{
+            //    max_so_far = reciprocal_distance_table[j];
+            //    selected_biome = j;
+            //}
+            biome_selector -= reciprocal_distance_table[j];
+            if (biome_selector <= 0.0)
+            {
+                material_indices[i] += j * NUM_TEXTURES_PER_BIOME;
+                break;
+            }
+        }
+
+        material_indices[i] += selected_biome * NUM_TEXTURES_PER_BIOME;
     }
+    // TODO: Check each material index w neighbors, make sure they are not one of a kind
+    // wrt biome
 
     Log::verbose("\tGenerating mesh data...");
 
@@ -204,7 +253,7 @@ v2f Chunk::getPosFromTileIndex(u32 tile_index, f32 tile_width)
 {
     u32 x = tile_index % TILES_PER_SIDE;
     u32 y = tile_index / TILES_PER_SIDE; 
-    return v2f{transform.pos.x + x + tile_width, transform.pos.y + y * tile_width}; 
+    return v2f{transform.pos.x + x * tile_width, transform.pos.y + y * tile_width}; 
 }
 
 void Chunk::updateUniforms(DZRenderer &renderer, s32 chunk_index)
@@ -237,6 +286,7 @@ Terrain::Terrain(DZRenderer &renderer, f32 chunk_size, u32 seed)
     , seed { seed }
 {
     AssetManager ass_man;
+    srand(seed);
 
     // NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO
     auto terrain_shader_src = *ass_man.getTextFile("shaders/terrain_shader.metal");
@@ -248,6 +298,54 @@ Terrain::Terrain(DZRenderer &renderer, f32 chunk_size, u32 seed)
     this->terrain_uniform_buffer = renderer.createBufferOfSize(sizeof(MegaChunkData));
 
     memset(this->visible.data(), 0, sizeof(Chunk*) * 9);
+
+    this->biomepoints[0] = BiomePoint { v2f{0.0f, 0.0f}, BIOME_DEFAULT };
+
+    for(int i = 1; i < VORONOI_BIOMES; i++)
+    {
+        BiomePoint &bp = this->biomepoints[i];
+
+        bp.position = v2f {
+            (float) (rand() % WORLDSIZE - WORLDSIZE/2),
+            (float) (rand() % WORLDSIZE - WORLDSIZE/2)
+        };
+        Log::verbose("%f, %f", bp.position.x, bp.position.y);
+        f32 start_distance = bp.position.distanceFrom(v2f {0.0f, 0.0f}); 
+
+        // CHECK START AREA (CENTER)
+        if(start_distance < START_AREA)
+            bp.biome = BIOME_DEFAULT;
+        // CHECK RAINFOREST (WEST)
+        else if(bp.position.x > START_AREA 
+             && bp.position.y < START_AREA 
+             && bp.position.x < START_AREA * 2 
+             && bp.position.y > START_AREA * 2)
+            bp.biome = BIOME_RAINFOREST;
+        // CHECK COLDLANDS (SOUTH)
+        else if(bp.position.x > START_AREA 
+             && bp.position.y > START_AREA)
+            bp.biome = BIOME_COLDLANDS;
+        // CHECK SANDLANDS (NORTH)
+        else if(bp.position.x < START_AREA 
+             && bp.position.y < START_AREA)
+            bp.biome = BIOME_SANDLANDS;
+        // CHECK GRAVELANDS (EAST)
+        else if(bp.position.x < START_AREA 
+             && bp.position.y > START_AREA 
+             && bp.position.x > START_AREA * 2 
+             && bp.position.y < START_AREA * 2)
+            bp.biome = BIOME_GRAVELANDS;
+        // CHECK MEATLANDS (FAR WEST)
+        else if(bp.position.x > START_AREA * 2 
+             && bp.position.y < START_AREA * 2)
+            bp.biome = BIOME_MEATLANDS;
+        // CHECK BADLANDS (FAR EAST)
+        else if(bp.position.x < START_AREA * 2 
+             && bp.position.y > START_AREA * 2)
+            bp.biome = BIOME_BADLANDS;
+        else
+            bp.biome = BIOME_DEFAULT;
+    }
 
     Log::verbose("Terrain established"); 
 }
@@ -267,7 +365,7 @@ v2f Terrain::getChunkOriginFromPos(v2f pos)
     return chunk_start;
 }
 
-void Terrain::createChunk(DZRenderer &renderer, glm::vec2 pos_in_chunk)
+void Terrain::createChunk(DZRenderer &renderer, glm::vec2 pos_in_chunk, std::array<BiomePoint, VORONOI_BIOMES>)
 {
     v2f chunkpos {
         pos_in_chunk.x,
@@ -284,7 +382,7 @@ void Terrain::createChunk(DZRenderer &renderer, glm::vec2 pos_in_chunk)
 
     Log::verbose("\tCreating chunk...");
 
-    Chunk chunk(origin, seed, chunk_size);
+    Chunk chunk(origin, seed, chunk_size, this->biomepoints);
 
     this->chunks.emplace(origin, chunk);
 }

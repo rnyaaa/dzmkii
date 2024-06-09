@@ -9,7 +9,6 @@
 
 
 #define TIMESCALE 0.1
-#define UP glm::vec3(0.0f, 0.0f, 1.0f)
 
 void updateMovement(float move_speed, Transform &transform, v3f target, u32 seed, Terrain &terrain)
 {

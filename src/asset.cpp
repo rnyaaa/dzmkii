@@ -106,6 +106,20 @@ std::optional<TextureData> AssetManager::getTexture(const std::string &filename)
         texture_data = image_buffer;
     }
 
+    // Convert to BGRA if single channel
+    if (num_channels == 1)
+    {
+        u8 *image_buffer = (u8 *) malloc(width * height * 4);
+        for(int i = 0; i < width*height; i++)
+        {
+            memset(image_buffer + (i * 4), texture_data[i], 4);
+            image_buffer[i * 4 + 3] = 255;
+        }
+        num_channels = 4;
+        free(texture_data);
+        texture_data = image_buffer;
+    }
+
     if (texture_data == nullptr)
     {
         Log::error(

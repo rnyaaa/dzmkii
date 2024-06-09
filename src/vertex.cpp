@@ -1,17 +1,23 @@
 #define GLM_SWIZZLE
 #include "vertex.h"
 #include "glm/geometric.hpp"
+
 Vertex::Vertex()
+    : pos(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
+    , color(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f))
+    , normal(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f))
+    , tangent(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f))
+    , bitangent(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f))
 {
 }
 
 Vertex::Vertex(glm::vec3 pos, glm::vec3 normal, glm::vec3 color, glm::vec3 tangent, glm::vec3 bitangent)
+    : pos(glm::vec4(pos, 1.0f))
+    , color(glm::vec4(color, 1.0f))
+    , normal(glm::vec4(normal, 0.0f))
+    , tangent(glm::vec4(tangent, 0.0f))
+    , bitangent(glm::vec4(bitangent, 0.0f))
 {
-    this->normal    = glm::vec4(normal, 0.0f);
-    this->tangent   = glm::vec4(tangent, 0.0f);
-    this->bitangent = glm::vec4(bitangent, 0.0f);
-    this->pos       = glm::vec4(pos, 1.0f);
-    this->color     = glm::vec4(color, 0.0f);
 }
 
 void Vertex::calculateTangentAndBitangent()
@@ -46,6 +52,13 @@ Vertex Vertex::withColor(glm::vec3 color)
 {
     Vertex new_vert = *this;
     new_vert.color = glm::vec4(color, 1.0f);
+    return new_vert;
+}
+
+Vertex Vertex::withNormal(glm::vec3 normal)
+{
+    Vertex new_vert = *this;
+    new_vert.normal = glm::vec4(normal, 0.0f);
     return new_vert;
 }
 
