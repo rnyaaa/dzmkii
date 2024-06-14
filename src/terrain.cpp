@@ -202,22 +202,26 @@ std::vector<BiomePoint> KDTree::find_n_closest(v2f pos, s32 n)
 MeshData genMeshFromTiles(std::vector<Tile> tiles)
 {
     std::vector<Vertex> vertices;
+    std::vector<u32> indices;
  
     for (auto tile : tiles)
     {
-        // TODO(jklmn): Do this using elements instead to reduce vertex count
-        vertices.push_back(tile.vertices[0]);
-        vertices.push_back(tile.vertices[1]);
-        vertices.push_back(tile.vertices[2]);
+        indices.push_back(vertices.size());
+        indices.push_back(vertices.size() + 1);
+        indices.push_back(vertices.size() + 2);
+        indices.push_back(vertices.size());
+        indices.push_back(vertices.size() + 2);
+        indices.push_back(vertices.size() + 3);
 
         vertices.push_back(tile.vertices[0]);
+        vertices.push_back(tile.vertices[1]);
         vertices.push_back(tile.vertices[2]);
         vertices.push_back(tile.vertices[3]);
     }
 
     return MeshData { 
         vertices,
-        {},
+        indices,
         PrimitiveType::TRIANGLE
     };
 }
