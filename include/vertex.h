@@ -21,6 +21,7 @@ struct Vertex
     Vertex withPos(glm::vec3);
     Vertex withColor(glm::vec3);
     Vertex withNormal(glm::vec3);
+    Vertex withUV(glm::vec2);
 
     void calculateTangentAndBitangent();
 };

@@ -38,10 +38,14 @@ struct MeshData
 
         return {
             {
-                vert.withPos(glm::vec3(0.0f, 0.0f, 0.0f)),
-                vert.withPos(glm::vec3(1.0f, 0.0f, 0.0f)),
-                vert.withPos(glm::vec3(1.0f, 1.0f, 0.0f)),
-                vert.withPos(glm::vec3(0.0f, 1.0f, 0.0f)),
+                vert.withPos(glm::vec3(0.0f, 0.0f, 0.0f))
+                    .withUV(glm::vec2(0.0, 0.0)),
+                vert.withPos(glm::vec3(1.0f, 0.0f, 0.0f))
+                    .withUV(glm::vec2(1.0, 0.0)),
+                vert.withPos(glm::vec3(1.0f, 1.0f, 0.0f))
+                    .withUV(glm::vec2(1.0, 1.0)),
+                vert.withPos(glm::vec3(0.0f, 1.0f, 0.0f))
+                    .withUV(glm::vec2(0.0, 1.0)),
             },
             { 0, 1, 2, 0, 3, 2 },
             PrimitiveType::TRIANGLE

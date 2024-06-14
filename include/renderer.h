@@ -51,21 +51,22 @@ enum class StorageMode
     SHARED, MANAGED, PRIVATE
 };
 
-struct DZBufferBinding
+template<typename T>
+struct Binding
 {
     ShaderStage shader_stage;
-    DZBuffer buffer;
+    T resource;
     u32 binding;
 
-    static DZBufferBinding Fragment(DZBuffer buffer, u32 binding)
+    static Binding Fragment(T resource, u32 binding)
     {
-        return DZBufferBinding { 
-            ShaderStage::FRAGMENT, buffer, binding };
+        return Binding { 
+            ShaderStage::FRAGMENT, resource, binding };
     }
 
-    static DZBufferBinding Vertex(DZBuffer buffer, u32 binding)
+    static Binding Vertex(T resource, u32 binding)
     {
-        return DZBufferBinding { ShaderStage::VERTEX, buffer, binding };
+        return Binding { ShaderStage::VERTEX, resource, binding };
     }
 };
 
@@ -76,13 +77,16 @@ struct DZRenderCommand
         SET_PIPELINE,
         SET_CLEAR_COLOR,
         BIND_BUFFER,
+        BIND_TEXTURE,
         DRAW_MESH
     } type;
 
 
     union {
         glm::vec3 clear_color;
-        DZBufferBinding binding;
+        Binding<DZBuffer>  buffer_binding;
+        Binding<DZTexture> texture_binding;
+        DZTexture texture;
         DZMesh mesh;
         DZPipeline pipeline;
     };
@@ -105,11 +109,19 @@ struct DZRenderCommand
         return ret;
     }
 
-    static DZRenderCommand BindBuffer(DZBufferBinding buffer_binding)
+    static DZRenderCommand BindBuffer(Binding<DZBuffer> buffer_binding)
     {
         DZRenderCommand ret;
         ret.type = BIND_BUFFER;
-        ret.binding = buffer_binding;
+        ret.buffer_binding = buffer_binding;
+        return ret;
+    }
+
+    static DZRenderCommand BindTexture(Binding<DZTexture> texture_binding)
+    {
+        DZRenderCommand ret;
+        ret.type = BIND_TEXTURE;
+        ret.texture_binding = texture_binding;
         return ret;
     }
 

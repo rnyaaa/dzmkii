@@ -40,6 +40,8 @@ struct GlobalUniforms
     CameraData camera;
     float3 sun_dir;
     int no_lights;
+    int debug_texture;
+    int LOS_ON;
 };
 
 struct PointLight
@@ -207,12 +209,19 @@ void get_neighbors(float2 frag_pos, int32_t chunk_index, thread neighbor *nbors)
     }
 };
 
-void set_materials(thread neighbor *nbors, uint8_t const constant *texture_index, uint8_t const constant *los_index, int n_nbor)
+void set_materials(thread neighbor *nbors, uint8_t const constant *texture_index, uint8_t const constant *los_index, int n_nbor, bool LOS_ON)
 {
     for(int i = 0; i < n_nbor; i++)
     {
-        nbors[i].material    = texture_index[tile_index_from_pos(nbors[i].pos, nbors[i].chunk_index)];
-        nbors[i].los         = los_index[tile_index_from_pos(nbors[i].pos, nbors[i].chunk_index)];
+        nbors[i].material = texture_index[tile_index_from_pos(nbors[i].pos, nbors[i].chunk_index)];
+        if(LOS_ON)
+        {
+             nbors[i].los = los_index[tile_index_from_pos(nbors[i].pos, nbors[i].chunk_index)];
+        }
+        else
+        {
+             nbors[i].los = 2;
+        }
     }
 };
 
@@ -230,38 +239,47 @@ void set_proportions(thread neighbor *nbors, int n_nbor, float2 fragpos)
 half3 blend(float2 pos, thread neighbor *nbors, int n_nbor, texture2d_array<half> tex, sampler tex_sampler)
 {
     half3 color(0.0);
+    int los;
     for(int i = 0; i < n_nbor; i++)
     {            
-             half3   material = half3(tex.sample(
-        tex_sampler, pos / 8.0, nbors[i].material * 3));
-             half3 normal = half3(tex.sample(
-        tex_sampler, pos / 8.0, nbors[i].material * 3 + 1));
+        half3 material = half3(tex.sample(
+                tex_sampler, pos / 16.0, nbors[i].material * 3));
+
+        half3 normal = half3(tex.sample(
+                tex_sampler, pos / 16.0, nbors[i].material * 3 + 1));
+
         half4 alpha = half4(tex.sample(
-                tex_sampler, pos / 8.0, nbors[i].material * 3 + 2));
+                tex_sampler, float2(pos.x + i % 2 + 1, pos.y + i % 2 -1) / 2, nbors[i].material * 3 + 2));
+
         nbors[i].color = material;
         nbors[i].norm  = normal;
-        nbors[i].alpha = nbors[i].distance * (nbors[i].color.x + nbors[i].color.y + nbors[i].color.z)/3; 
+        nbors[i].alpha = alpha.x * nbors[i].distance; 
     } 
     neighbor max_alpha;
     for(int i = 0; i < n_nbor; i++)
     {
+        los += (int) nbors[i].los * nbors[i].distance;
+        color += nbors[i].color * nbors[i].distance;
         if(nbors[i].alpha > max_alpha.alpha)
         {
             max_alpha = nbors[i];
         }
     }
+    half3 gray = (max_alpha.color.x + max_alpha.color.z + max_alpha.color.y)/3;
+        return  mix(mix(mix(max_alpha.color, color, 0.5), half3{0.0}, clamp(los-155, 0, 100)/100), gray, 1-clamp(los-100, 0, 100)/100);
     if(max_alpha.los == 0)
     {
       return {0.0, 0.0, 0.0};
     }
-    if(max_alpha.los == 2)
+    if(max_alpha.los == 255)
     {
-      return max_alpha.color;
+      return mix(max_alpha.color, color, 0.5);
     }
-    else if(max_alpha.los == 1)
+    else if(max_alpha.los < 255)
     {
         return half3((max_alpha.color.x + max_alpha.color.y + max_alpha.color.z) / 3);
     }
+    return {0.0, 0.0, 0.0};
 };
 
 half3 norm_blend(float2 pos, const thread neighbor nbors[9], int n_nbor, texture2d_array<half> tex, sampler tex_sampler)
@@ -286,11 +304,11 @@ half4 fragment fragmentMain(
         texture2d_array<half> terrain_textures [[ texture(0) ]],
         sampler texture_sampler [[ sampler(0) ]]
     )
-{
+{    
     neighbor nbors[4];
     get_neighbors(in.local_position.xy, local_uniforms.chunk_index, nbors);
     set_proportions(nbors, 4, in.local_position.xy);
-    set_materials(nbors, &terrain_uniforms.texture_indices[0], &terrain_uniforms.los_indices[0], 4);
+    set_materials(nbors, &terrain_uniforms.texture_indices[0], &terrain_uniforms.los_indices[0], 4, global_uniforms.LOS_ON);
     
     half3 texture = blend(in.local_position.xy, nbors, 4, terrain_textures, texture_sampler);
     

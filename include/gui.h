@@ -11,7 +11,7 @@ struct GUI
     Model selection_rect_model; 
     int x_start, y_start, x_curr, y_curr;
     GUI();
-    AArect2f selection_to_worldspace();
+    AArect2f selection_to_worldspace(Camera camera);
 };
 
 #endif // _GUI_H

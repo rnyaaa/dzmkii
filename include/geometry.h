@@ -12,9 +12,19 @@ struct v2
     union { T x; T u; };
     union { T y; T v; };
 
+    inline double magnitudeSq()
+    {
+        return x * x + y * y;
+    }
+
     inline double magnitude()
     {
-        return std::sqrt(x * x + y * y);
+        return std::sqrt(this->magnitudeSq());
+    }
+
+    inline double distanceSqFrom(const v2 &other) const
+    {
+        return (*this - other).magnitudeSq();
     }
 
     inline double distanceFrom(const v2 &other) const
@@ -58,10 +68,21 @@ struct v3
     union { T y; T g; };
     union { T z; T b; };
 
+    inline double magnitudeSq()
+    {
+        return x * x + y * y + z * z;
+    }
+
     inline double magnitude()
     {
-        return std::sqrt(x * x + y * y + z * z);
+        return std::sqrt(this->magnitudeSq());
     }
+
+    inline double distanceSqFrom(const v3 &other) const
+    {
+        return (*this - other).magnitudeSq();
+    }
+
 
     inline double distanceFrom(const v3 &other) const
     {
@@ -106,14 +127,28 @@ struct v3
     }
 };
 
+template <typename T>
+struct v4
+{
+    union { T x; T r; };
+    union { T y; T g; };
+    union { T z; T b; };
+    union { T w; T a; };
+};
+
 typedef v2<uint32_t> v2u;
 typedef v3<uint32_t> v3u;
+typedef v4<uint32_t> v4u;
 typedef v2<int32_t>  v2i;
 typedef v3<int32_t>  v3i;
+typedef v4<int32_t>  v4i;
 typedef v2<float>    v2f;
 typedef v3<float>    v3f;
+typedef v4<float>    v4f;
 typedef v2<double>   v2d;
 typedef v3<double>   v3d;
+typedef v4<double>   v4d;
+
 
 template <typename T> struct AARect2D;
 template <typename T> struct Circle2D;

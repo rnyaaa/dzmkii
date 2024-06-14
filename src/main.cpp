@@ -84,9 +84,10 @@ int main(int argc, char *argv[])
 
     // INITIALIZE RENDERING
 
-    auto gui_shader_src = *ass_man.getTextFile("shaders/gui_shader.metal");
-    auto basic_shader_src = *ass_man.getTextFile("shaders/basic_shader.metal");
+    auto gui_shader_src     = *ass_man.getTextFile("shaders/gui_shader.metal");
+    auto basic_shader_src   = *ass_man.getTextFile("shaders/basic_shader.metal");
     auto terrain_shader_src = *ass_man.getTextFile("shaders/terrain_shader.metal");
+    auto fow_shader_src     = *ass_man.getTextFile("shaders/LOS_shader.metal");
 
     DZRenderer renderer(window);
 
@@ -96,11 +97,14 @@ int main(int argc, char *argv[])
         = renderer.compileShaders(basic_shader_src, {"vertexMain", "fragmentMain"});
     std::vector<DZShader> terrain_shaders 
         = renderer.compileShaders(terrain_shader_src, {"vertexMain", "fragmentMain"});
+    std::vector<DZShader> fow_shaders 
+        = renderer.compileShaders(fow_shader_src, {"vertexMain", "fragmentMain"});
 
     // TODO: Handle more gracefully
     if(gui_shaders.size()     != 2) exit(1);
     if(basic_shaders.size()   != 2) exit(1);
     if(terrain_shaders.size() != 2) exit(1);
+    if(fow_shaders.size()     != 2) exit(1);
 
     DZPipeline gui_pipeline 
         = renderer.createPipeline(gui_shaders[0], gui_shaders[1]);
@@ -108,6 +112,8 @@ int main(int argc, char *argv[])
         = renderer.createPipeline(basic_shaders[0], basic_shaders[1]);
     DZPipeline terrain_pipeline 
         = renderer.createPipeline(terrain_shaders[0], terrain_shaders[1]);
+    DZPipeline fow_pipeline
+        = renderer.createPipeline(fow_shaders[0], fow_shaders[1]);
 
     // TODO: Get these from a config file
     ass_man.addSearchDirectory("resources");
@@ -121,58 +127,58 @@ int main(int argc, char *argv[])
     ass_man.addSearchDirectory("resources/new/7-undergrowth-pospospos");
                                        
     ass_man.addSearchDirectory("resources/new/rainforest/");                                       
-    ass_man.addSearchDirectory("resources/new/rainforest/1 - tarryoil");                               
-    ass_man.addSearchDirectory("resources/new/rainforest/2 - tarryblack"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/3 - rainundergrowth"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/4 - forestgore"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/5 - bloodvines"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/6 - redvein"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/7 - veinmass"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/1-tarryoil");                               
+    ass_man.addSearchDirectory("resources/new/rainforest/2-tarryblack"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/3-rainundergrowth"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/4-forestgore"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/5-bloodvines"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/6-redvein"); 
+    ass_man.addSearchDirectory("resources/new/rainforest/7-veinmass"); 
  
     ass_man.addSearchDirectory("resources/new/coldlands/");
-    ass_man.addSearchDirectory("resources/new/coldlands/1 - bogfrost");
-    ass_man.addSearchDirectory("resources/new/coldlands/2 - frozen");
-    ass_man.addSearchDirectory("resources/new/coldlands/3 - permafrost");
-    ass_man.addSearchDirectory("resources/new/coldlands/4 - boggytundragrass");
-    ass_man.addSearchDirectory("resources/new/coldlands/5 - coldbog");
-    ass_man.addSearchDirectory("resources/new/coldlands/6 - sparserocks");
-    ass_man.addSearchDirectory("resources/new/coldlands/7 - rocks");
+    ass_man.addSearchDirectory("resources/new/coldlands/1-bogfrost");
+    ass_man.addSearchDirectory("resources/new/coldlands/2-frozen");
+    ass_man.addSearchDirectory("resources/new/coldlands/3-permafrost");
+    ass_man.addSearchDirectory("resources/new/coldlands/4-boggytundragrass");
+    ass_man.addSearchDirectory("resources/new/coldlands/5-coldbog");
+    ass_man.addSearchDirectory("resources/new/coldlands/6-sparserocks");
+    ass_man.addSearchDirectory("resources/new/coldlands/7-rocks");
  
     ass_man.addSearchDirectory("resources/new/desertlands/");
-    ass_man.addSearchDirectory("resources/new/desertlands/1 - greener");
-    ass_man.addSearchDirectory("resources/new/desertlands/2 - straw");
-    ass_man.addSearchDirectory("resources/new/desertlands/3 - sparse");
-    ass_man.addSearchDirectory("resources/new/desertlands/4 - sand");
-    ass_man.addSearchDirectory("resources/new/desertlands/5 - rockier");
-    ass_man.addSearchDirectory("resources/new/desertlands/6 - boulders");
-    ass_man.addSearchDirectory("resources/new/desertlands/7 - grayrockface");
+    ass_man.addSearchDirectory("resources/new/desertlands/1-greener");
+    ass_man.addSearchDirectory("resources/new/desertlands/2-straw");
+    ass_man.addSearchDirectory("resources/new/desertlands/3-sparse");
+    ass_man.addSearchDirectory("resources/new/desertlands/4-sand");
+    ass_man.addSearchDirectory("resources/new/desertlands/5-rockier");
+    ass_man.addSearchDirectory("resources/new/desertlands/6-boulders");
+    ass_man.addSearchDirectory("resources/new/desertlands/7-grayrockface");
  
     ass_man.addSearchDirectory("resources/new/gravelands/");
-    ass_man.addSearchDirectory("resources/new/gravelands/1 - allbones");
-    ass_man.addSearchDirectory("resources/new/gravelands/2 - bones");
-    ass_man.addSearchDirectory("resources/new/gravelands/3 - gravedirt");
-    ass_man.addSearchDirectory("resources/new/gravelands/4 - deadgrass");
-    ass_man.addSearchDirectory("resources/new/gravelands/5 - sparsedirt");
-    ass_man.addSearchDirectory("resources/new/gravelands/6 - needles");
-    ass_man.addSearchDirectory("resources/new/gravelands/7 - pineundergrowth");
+    ass_man.addSearchDirectory("resources/new/gravelands/1-allbones");
+    ass_man.addSearchDirectory("resources/new/gravelands/2-bones");
+    ass_man.addSearchDirectory("resources/new/gravelands/3-gravedirt");
+    ass_man.addSearchDirectory("resources/new/gravelands/4-deadgrass");
+    ass_man.addSearchDirectory("resources/new/gravelands/5-sparsedirt");
+    ass_man.addSearchDirectory("resources/new/gravelands/6-needles");
+    ass_man.addSearchDirectory("resources/new/gravelands/7-pineundergrowth");
  
     ass_man.addSearchDirectory("resources/new/meatlands/");
-    ass_man.addSearchDirectory("resources/new/meatlands/1 - vastmembrane");
-    ass_man.addSearchDirectory("resources/new/meatlands/2 - biggerorgans"); 
-    ass_man.addSearchDirectory("resources/new/meatlands/3 - organy");
-    ass_man.addSearchDirectory("resources/new/meatlands/4 - meat");
-    ass_man.addSearchDirectory("resources/new/meatlands/5 - morebloodguts");
-    ass_man.addSearchDirectory("resources/new/meatlands/6 - bloodier"); 
-    ass_man.addSearchDirectory("resources/new/meatlands/7 - bloodeverywhere");                    
+    ass_man.addSearchDirectory("resources/new/meatlands/1-vastmembrane");
+    ass_man.addSearchDirectory("resources/new/meatlands/2-biggerorgans"); 
+    ass_man.addSearchDirectory("resources/new/meatlands/3-organy");
+    ass_man.addSearchDirectory("resources/new/meatlands/4-meat");
+    ass_man.addSearchDirectory("resources/new/meatlands/5-morebloodguts");
+    ass_man.addSearchDirectory("resources/new/meatlands/6-bloodier"); 
+    ass_man.addSearchDirectory("resources/new/meatlands/7-bloodeverywhere");                    
  
     ass_man.addSearchDirectory("resources/new/badlands/");
-    ass_man.addSearchDirectory("resources/new/badlands/1 - brick");
-    ass_man.addSearchDirectory("resources/new/badlands/2 - burnt");
-    ass_man.addSearchDirectory("resources/new/badlands/3 - burntmoss");
-    ass_man.addSearchDirectory("resources/new/badlands/4 - deadground");
-    ass_man.addSearchDirectory("resources/new/badlands/5 - cracksooze");
-    ass_man.addSearchDirectory("resources/new/badlands/6 - dirtooze");
-    ass_man.addSearchDirectory("resources/new/badlands/7 - ooze");
+    ass_man.addSearchDirectory("resources/new/badlands/1-brick");
+    ass_man.addSearchDirectory("resources/new/badlands/2-burnt");
+    ass_man.addSearchDirectory("resources/new/badlands/3-burntmoss");
+    ass_man.addSearchDirectory("resources/new/badlands/4-deadground");
+    ass_man.addSearchDirectory("resources/new/badlands/5-cracksooze");
+    ass_man.addSearchDirectory("resources/new/badlands/6-dirtooze");
+    ass_man.addSearchDirectory("resources/new/badlands/7-ooze");
 
     std::vector<std::string> texture_paths = {
         // DEFAULT 0-6
@@ -263,20 +269,22 @@ int main(int argc, char *argv[])
 
     DZTextureArray tex_array = renderer.createTextureArray(texture_datas);
 
+    DZTexture tex = renderer.createTexture(texture_datas[2]);
+
     // CREATE WORLD
 
     World world {
-        Scene(renderer, terrain_pipeline, basic_pipeline, gui_pipeline),
+        Scene(renderer, terrain_pipeline, basic_pipeline, gui_pipeline, fow_pipeline),
         {},
         {}
     };
 
     // INITIALIZE TERRAIN AND WORLD REGISTRY
 
-    world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, 0.0f), world.scene.terrain.biomepoints);
-    world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, -100.0f), world.scene.terrain.biomepoints);
-    world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, 0.0f), world.scene.terrain.biomepoints);
-    world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, -100.0f), world.scene.terrain.biomepoints);
+    // world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, 0.0f));
+    // world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, -100.0f));
+    // world.scene.terrain.createChunk(renderer, glm::vec2(-100.0f, 0.0f));
+    // world.scene.terrain.createChunk(renderer, glm::vec2(0.0f, -100.0f));
 
     const entt::entity c = world.scene.registry.create();
 
@@ -317,42 +325,55 @@ int main(int argc, char *argv[])
     world.render_systems.push_back(&RenderSystem::terrain);
     world.render_systems.push_back(&RenderSystem::models);
     world.render_systems.push_back(&RenderSystem::gui);
+    world.render_systems.push_back(&RenderSystem::fow);
     
-    World *curr_world;
-    curr_world = &world;
-    
-
     // DEBUG WORLD
 
-    World alt_world = {
-        Scene(renderer, terrain_pipeline, basic_pipeline, gui_pipeline),
+    World model_view_world = {
+        Scene(renderer, terrain_pipeline, basic_pipeline, gui_pipeline, fow_pipeline),
         {},
         {}
     };
 
-    alt_world.scene.camera.ortho = false;
-    alt_world.game_systems.push_back(&GameSystem::debugControl);
-    alt_world.render_systems.push_back(&RenderSystem::updateData);
-    alt_world.render_systems.push_back(&RenderSystem::models);
+    model_view_world.scene.camera.ortho = false;
+    model_view_world.game_systems.push_back(&GameSystem::debugControl);
+    model_view_world.render_systems.push_back(&RenderSystem::updateData);
+    model_view_world.render_systems.push_back(&RenderSystem::models);
 
-    auto plane_entity = alt_world.scene.registry.create();
+    auto plane_entity = model_view_world.scene.registry.create();
     auto plane_entity_mesh_data = MeshData::UnitPlane();
     plane_entity_mesh_data.translate(glm::vec3(-0.5, -0.5, 0.0));
     Model plane_model 
         = Model::fromMeshDatas(renderer, {plane_entity_mesh_data});
-    alt_world.scene.registry.emplace<Model>(plane_entity, plane_model);
-    alt_world.scene.registry.emplace<Transform>(plane_entity);
+    model_view_world.scene.registry.emplace<Model>(plane_entity, plane_model);
+    model_view_world.scene.registry.emplace<Transform>(plane_entity);
 
     // INITIALIZE THINGIES
-
+    
+    World *curr_world;
+    curr_world = &model_view_world;
+    
     GUI gui;
     gui.selection_rect_model = Model::fromMeshDatas(renderer, { MeshData::UnitSquare() });
+    gui.selection_rect_model.textured = false;
     SDL_Event e;
     InputState input;
     double delta_time = 0.0;
+    double elapsed_time = 0.0;
+
+    // Temporary
+    // TODO: Remove
+    
+    Model texture_display_model = Model::fromMeshDatas(renderer, { MeshData::UnitPlane() });
+    Transform texture_display_transform = {
+        glm::vec3(-.5, -.5, 0.0),
+        glm::vec3(1.0),
+        glm::vec3(0.0)
+    };
 
     while(true)
     {
+        elapsed_time += delta_time;
         const auto frame_start = std::chrono::steady_clock::now();
         input.update();
  
@@ -370,7 +391,7 @@ int main(int argc, char *argv[])
         if (input.key[DZKey::F] && !input.key_prev[DZKey::F])
         {
             if (curr_world == &world)
-                curr_world = &alt_world;
+                curr_world = &model_view_world;
             else
                 curr_world = &world;
         }
@@ -381,7 +402,17 @@ int main(int argc, char *argv[])
             system(renderer, curr_world->scene, input, gui, delta_time);
    
         for (auto system : curr_world->render_systems)
-            system(renderer, curr_world->scene, input, screen_dim, gui);
+            system(renderer, curr_world->scene, input, screen_dim, gui, elapsed_time);
+
+        // Texture preview
+        //renderer.enqueueCommand(
+        //        DZRenderCommand::SetPipeline(curr_world->scene.gui_pipeline));
+        //renderer.enqueueCommand(
+        //        DZRenderCommand::BindTexture(Binding<DZTexture>::Fragment(tex, 0)));
+
+        //texture_display_model.textured = true;
+        //texture_display_model.render(renderer, texture_display_transform);
+        // /Texture Preview
 
         renderer.executeCommandQueue();
 

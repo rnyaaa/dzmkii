@@ -57,12 +57,12 @@ struct Model
 
         renderer.enqueueCommand(
                 DZRenderCommand::BindBuffer(
-                    DZBufferBinding::Vertex(
+                    Binding<DZBuffer>::Vertex(
                         this->uniform_buffer, 2)));
 
         renderer.enqueueCommand(
                 DZRenderCommand::BindBuffer(
-                    DZBufferBinding::Fragment(
+                    Binding<DZBuffer>::Fragment(
                         this->uniform_buffer, 1)));
 
         for (const auto &mesh : this->meshes)

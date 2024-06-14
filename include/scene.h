@@ -14,6 +14,8 @@ struct SceneUniforms
     glm::vec4 sun;
     s32 no_lights;
     s32 debug_texture;
+    s32 LOS_ON;
+    float elapsed_time;
 };
 
 struct Scene
@@ -24,15 +26,17 @@ struct Scene
     Terrain terrain;
     Camera camera;
     s32 debug_texture;
+    s32 LOS_ON;
 
     DZPipeline terrain_pipeline;
     DZPipeline model_pipeline;
     DZPipeline gui_pipeline;
+    DZPipeline fow_pipeline;
 
     DZBuffer scene_uniform_buffer;
     DZBuffer light_buffer;
 
-    Scene(DZRenderer &renderer, DZPipeline terrain_pipeline, DZPipeline model_pipeline, DZPipeline gui_pipeline);
+    Scene(DZRenderer &renderer, DZPipeline terrain_pipeline, DZPipeline model_pipeline, DZPipeline gui_pipeline, DZPipeline fow_pipeline);
 
     void render(DZRenderer &renderer, const glm::vec2 &screen_dim);
 };

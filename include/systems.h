@@ -30,7 +30,7 @@ namespace GameSystem
     void terrainGeneration(GAMESYSTEM_ARGS);
 }
 
-#define RENDERSYSTEM_ARGS DZRenderer &renderer, const Scene &scene, InputState &input, const glm::vec2 &screen_dim, GUI &gui
+#define RENDERSYSTEM_ARGS DZRenderer &renderer, const Scene &scene, InputState &input, const glm::vec2 &screen_dim, GUI &gui, float elapsed_time
 
 namespace RenderSystem
 {
@@ -38,6 +38,7 @@ namespace RenderSystem
     void terrain(RENDERSYSTEM_ARGS);
     void models(RENDERSYSTEM_ARGS);
     void gui(RENDERSYSTEM_ARGS);
+    void fow(RENDERSYSTEM_ARGS);
 }
 
 #endif // _SYSTEMS_H

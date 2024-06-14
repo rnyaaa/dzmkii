@@ -62,3 +62,10 @@ Vertex Vertex::withNormal(glm::vec3 normal)
     return new_vert;
 }
 
+Vertex Vertex::withUV(glm::vec2 uv)
+{
+    Vertex new_vert = *this;
+    new_vert.uv = uv;
+    return new_vert;
+}
+

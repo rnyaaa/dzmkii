@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "Foundation/NSTypes.hpp"
 #include "Metal/MTLRenderCommandEncoder.hpp"
+#include "Metal/MTLRenderPipeline.hpp"
 #include "Metal/MTLResource.hpp"
 #include "Metal/MTLSampler.hpp"
 #include "Metal/MTLStageInputOutputDescriptor.hpp"
@@ -117,10 +118,10 @@ void DZRenderer::executeCommandQueue()
         }
         else if (command.type == DZRenderCommand::BIND_BUFFER)
         {
-            DZBufferBinding binding = command.binding;
+            Binding<DZBuffer> binding = command.buffer_binding;
 
             MTL::Buffer *buf = this->general_buffers[
-                    binding.buffer
+                    binding.resource
                 ];
 
             switch (binding.shader_stage)
@@ -148,6 +149,46 @@ void DZRenderer::executeCommandQueue()
                         ->setFragmentBuffer(
                                 buf,
                                 0,
+                                binding.binding
+                            );
+                    break;
+                default:
+                    Log::warning("Bogus shader stage during "
+                                 "buffer binding?");
+                    break;
+            }
+        }
+        else if (command.type == DZRenderCommand::BIND_TEXTURE)
+        {
+            Binding<DZTexture> binding = command.texture_binding;
+
+            MTL::Texture *tex = this->textures[
+                    binding.resource
+                ];
+
+            switch (binding.shader_stage)
+            {
+                case ShaderStage::VERTEX:
+                    switch (binding.binding)
+                    {
+                        case 1:
+                            Log::warning("Attempting to bind "
+                                         "to reserved binding "
+                                         "in vertex shader");
+                            break;
+                        default:
+                            encoder
+                                ->setVertexTexture(
+                                        tex,
+                                        binding.binding
+                                    );
+                            break;
+                    }
+                    break;
+                case ShaderStage::FRAGMENT:
+                    encoder
+                        ->setFragmentTexture(
+                                tex,
                                 binding.binding
                             );
                     break;
@@ -254,6 +295,26 @@ DZPipeline DZRenderer::createPipeline(
         ->colorAttachments()
         ->object(0)
         ->setPixelFormat(DEFAULT_PIXEL_FORMAT);
+    pipeline_desc
+        ->colorAttachments()
+        ->object(0)
+        ->setBlendingEnabled(true);
+    pipeline_desc
+        ->colorAttachments()
+        ->object(0)
+        ->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+    pipeline_desc
+        ->colorAttachments()
+        ->object(0)
+        ->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+    pipeline_desc
+        ->colorAttachments()
+        ->object(0)
+        ->setSourceAlphaBlendFactor(MTL::BlendFactorSourceAlpha);
+    pipeline_desc
+        ->colorAttachments()
+        ->object(0)
+        ->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
 
     MTL::RenderPipelineState *pipeline_state = device->newRenderPipelineState(pipeline_desc, &error);
 
