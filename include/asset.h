@@ -3,14 +3,16 @@
 
 #include <string>
 #include <optional>
+#include <filesystem>
 
 #include "texture.h"
+namespace fs = std::filesystem;
 
 struct AssetManager
 {
     std::vector<std::string> search_dirs;
 
-    void addSearchDirectory(std::string dir);
+    void addSearchDirectory(const fs::path &dir, bool recursive=false);
 
     std::vector<std::string> findMatchingFiles(
             std::string filename, 

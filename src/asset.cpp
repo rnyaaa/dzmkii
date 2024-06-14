@@ -13,10 +13,20 @@
 
 namespace fs = std::filesystem;
 
-void AssetManager::addSearchDirectory(std::string dir)
+void AssetManager::addSearchDirectory(const fs::path &dir, bool recursive)
 {
+    if (fs::is_directory(dir))
+    {
+        this->search_dirs.push_back(dir);
+        if (recursive)
+        {
+            for(const auto &entry : fs::directory_iterator(dir))
+            {
+                this->addSearchDirectory(entry, recursive);
+            }
+        }
+    }
     // TODO: verify directory exists
-    this->search_dirs.push_back(dir);
 }
 
 std::vector<std::string> AssetManager::findMatchingFiles(

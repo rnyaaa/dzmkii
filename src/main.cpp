@@ -116,69 +116,7 @@ int main(int argc, char *argv[])
         = renderer.createPipeline(fow_shaders[0], fow_shaders[1]);
 
     // TODO: Get these from a config file
-    ass_man.addSearchDirectory("resources");
-    ass_man.addSearchDirectory("resources/new");
-    ass_man.addSearchDirectory("resources/new/1-alldirt-negnegneg");
-    ass_man.addSearchDirectory("resources/new/2-moredirt-negneg");
-    ass_man.addSearchDirectory("resources/new/3-bitdirt-neg");
-    ass_man.addSearchDirectory("resources/new/4-grassy-mid");
-    ass_man.addSearchDirectory("resources/new/5-mossy-pos");
-    ass_man.addSearchDirectory("resources/new/6-darkmoss-pospos");
-    ass_man.addSearchDirectory("resources/new/7-undergrowth-pospospos");
-                                       
-    ass_man.addSearchDirectory("resources/new/rainforest/");                                       
-    ass_man.addSearchDirectory("resources/new/rainforest/1-tarryoil");                               
-    ass_man.addSearchDirectory("resources/new/rainforest/2-tarryblack"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/3-rainundergrowth"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/4-forestgore"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/5-bloodvines"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/6-redvein"); 
-    ass_man.addSearchDirectory("resources/new/rainforest/7-veinmass"); 
- 
-    ass_man.addSearchDirectory("resources/new/coldlands/");
-    ass_man.addSearchDirectory("resources/new/coldlands/1-bogfrost");
-    ass_man.addSearchDirectory("resources/new/coldlands/2-frozen");
-    ass_man.addSearchDirectory("resources/new/coldlands/3-permafrost");
-    ass_man.addSearchDirectory("resources/new/coldlands/4-boggytundragrass");
-    ass_man.addSearchDirectory("resources/new/coldlands/5-coldbog");
-    ass_man.addSearchDirectory("resources/new/coldlands/6-sparserocks");
-    ass_man.addSearchDirectory("resources/new/coldlands/7-rocks");
- 
-    ass_man.addSearchDirectory("resources/new/desertlands/");
-    ass_man.addSearchDirectory("resources/new/desertlands/1-greener");
-    ass_man.addSearchDirectory("resources/new/desertlands/2-straw");
-    ass_man.addSearchDirectory("resources/new/desertlands/3-sparse");
-    ass_man.addSearchDirectory("resources/new/desertlands/4-sand");
-    ass_man.addSearchDirectory("resources/new/desertlands/5-rockier");
-    ass_man.addSearchDirectory("resources/new/desertlands/6-boulders");
-    ass_man.addSearchDirectory("resources/new/desertlands/7-grayrockface");
- 
-    ass_man.addSearchDirectory("resources/new/gravelands/");
-    ass_man.addSearchDirectory("resources/new/gravelands/1-allbones");
-    ass_man.addSearchDirectory("resources/new/gravelands/2-bones");
-    ass_man.addSearchDirectory("resources/new/gravelands/3-gravedirt");
-    ass_man.addSearchDirectory("resources/new/gravelands/4-deadgrass");
-    ass_man.addSearchDirectory("resources/new/gravelands/5-sparsedirt");
-    ass_man.addSearchDirectory("resources/new/gravelands/6-needles");
-    ass_man.addSearchDirectory("resources/new/gravelands/7-pineundergrowth");
- 
-    ass_man.addSearchDirectory("resources/new/meatlands/");
-    ass_man.addSearchDirectory("resources/new/meatlands/1-vastmembrane");
-    ass_man.addSearchDirectory("resources/new/meatlands/2-biggerorgans"); 
-    ass_man.addSearchDirectory("resources/new/meatlands/3-organy");
-    ass_man.addSearchDirectory("resources/new/meatlands/4-meat");
-    ass_man.addSearchDirectory("resources/new/meatlands/5-morebloodguts");
-    ass_man.addSearchDirectory("resources/new/meatlands/6-bloodier"); 
-    ass_man.addSearchDirectory("resources/new/meatlands/7-bloodeverywhere");                    
- 
-    ass_man.addSearchDirectory("resources/new/badlands/");
-    ass_man.addSearchDirectory("resources/new/badlands/1-brick");
-    ass_man.addSearchDirectory("resources/new/badlands/2-burnt");
-    ass_man.addSearchDirectory("resources/new/badlands/3-burntmoss");
-    ass_man.addSearchDirectory("resources/new/badlands/4-deadground");
-    ass_man.addSearchDirectory("resources/new/badlands/5-cracksooze");
-    ass_man.addSearchDirectory("resources/new/badlands/6-dirtooze");
-    ass_man.addSearchDirectory("resources/new/badlands/7-ooze");
+    ass_man.addSearchDirectory("resources/new", true);
 
     std::vector<std::string> texture_paths = {
         // DEFAULT 0-6
