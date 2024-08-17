@@ -1,4 +1,5 @@
 #include "systems.h"
+#include <SDL_error.h>
 #define GLM_SWIZZLE
 
 #include <SDL_events.h>
@@ -37,9 +38,6 @@
 #include "systems.h"
 #include "input.h"
 
-#define SDL_ERR(msg) \
-    printf("[ERROR] %s\n\t%s\n", msg, SDL_GetError())
-
 const glm::vec3 north(-1.0f, -1.0f, 0.0f);
 const glm::vec3 south(1.0f, 1.0f, 0.0f);
 const glm::vec3 east(-1.0f, 1.0f, 0.0f);
@@ -63,7 +61,10 @@ int main(int argc, char *argv[])
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
-        SDL_ERR("SDL could not initialize!");
+    {
+        Log::error("SDL could not initialize:\n\t%s", SDL_GetError());
+        exit(1);
+    }
 
     SDL_Window *window = SDL_CreateWindow(
             "SDL2Test",
@@ -76,7 +77,10 @@ int main(int argc, char *argv[])
         );
 
     if (window == NULL)
-        SDL_ERR("SDL_Window could not be created!");
+    {
+        Log::error("SDL_Window could not be created:\n\t%s", SDL_GetError());
+        exit(1);
+    }
 
     // INITIALIZE ASSET MANAGER
 
