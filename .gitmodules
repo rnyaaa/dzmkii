@@ -1,0 +1,6 @@
+[submodule "libs/metal-cpp-cmake"]
+	path = libs/metal-cpp-cmake
+	url = git@github.com:LeeTeng2001/metal-cpp-cmake.git
+[submodule "libs/assimp"]
+	path = libs/assimp
+	url = git@github.com:assimp/assimp.git

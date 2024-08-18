@@ -1,6 +1,5 @@
 .cache/
 build*/
 metal-cmake/
-libs/
 .DS_Store
 

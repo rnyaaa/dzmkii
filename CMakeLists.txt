@@ -14,7 +14,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(DZMKII)
 
-add_subdirectory(libs/metal-cmake)
+option(METAL_CPP_BUILD_EXAMPLES "Build examples" OFF)
+add_subdirectory(libs/metal-cpp-cmake)
 add_subdirectory(libs/assimp)
 
 include(FetchContent)
