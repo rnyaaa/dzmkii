@@ -1,4 +1,3 @@
-#define GLM_SWIZZLE
 #include "vertex.h"
 #include "glm/geometric.hpp"
 

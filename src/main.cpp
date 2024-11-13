@@ -1,13 +1,10 @@
-#include "systems.h"
-#include <SDL_error.h>
-#define GLM_SWIZZLE
-
 #include <SDL_events.h>
 #include <SDL_metal.h>
 #include <SDL_mouse.h>
 #include <SDL_render.h>
 #include <SDL_scancode.h>
 #include <SDL_video.h>
+#include <SDL_error.h>
 #include <SDL.h>
 
 #include <chrono>
@@ -24,6 +21,7 @@
 
 #include <entt.hpp>
 
+#include "systems.h"
 #include "common.h"
 #include "logger.h"
 #include "renderer.h"
@@ -37,53 +35,23 @@
 #include "scene.h"
 #include "systems.h"
 #include "input.h"
+#include "world.h"
+#include "window.h"
 
 const glm::vec3 north(-1.0f, -1.0f, 0.0f);
 const glm::vec3 south(1.0f, 1.0f, 0.0f);
 const glm::vec3 east(-1.0f, 1.0f, 0.0f);
 const glm::vec3 west(1.0f, -1.0f, 0.0f);
 
-
-struct World
-{
-    Scene scene;
-
-    std::vector<std::function<void(GAMESYSTEM_ARGS)>> game_systems;
-    std::vector<std::function<void(RENDERSYSTEM_ARGS)>> render_systems;
-};
-
 int main(int argc, char *argv[])
 {
-    // INITIALIZE WINDOW
     // TODO: Set log level with option or defines
     Log::setLogLevel(Log::LogLevel::VERBOSE);
 
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
-
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        Log::error("SDL could not initialize:\n\t%s", SDL_GetError());
-        exit(1);
-    }
-
-    SDL_Window *window = SDL_CreateWindow(
-            "SDL2Test",
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
-            1024,
-            768,
-            SDL_WINDOW_ALLOW_HIGHDPI
-            | SDL_WINDOW_BORDERLESS
-        );
-
-    if (window == NULL)
-    {
-        Log::error("SDL_Window could not be created:\n\t%s", SDL_GetError());
-        exit(1);
-    }
-
+    // INITIALIZE WINDOW
+    DZWindow window("DZMKII", 1024, 768);
+    
     // INITIALIZE ASSET MANAGER
-
     AssetManager ass_man;
 
     // INITIALIZE RENDERING
@@ -319,13 +287,8 @@ int main(int argc, char *argv[])
         const auto frame_start = std::chrono::steady_clock::now();
         input.update();
  
-        s32 window_width, window_height;
-        SDL_GetWindowSize(window, &window_width, &window_height);
-        glm::vec2 screen_dim(
-                (float) window_width, 
-                (float) (window_height)
-            );
-
+        v2i window_size = window.getWindowSize();
+        glm::vec2 screen_dim( (float) window_size.x, (float) window_size.y);
 
         if (input.quit)
             goto quit;
@@ -366,7 +329,6 @@ int main(int argc, char *argv[])
 
 quit:
 
-    SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
 }

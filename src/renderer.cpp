@@ -1,18 +1,21 @@
-#include "renderer.h"
-#include "Foundation/NSTypes.hpp"
-#include "Metal/MTLRenderCommandEncoder.hpp"
-#include "Metal/MTLRenderPipeline.hpp"
-#include "Metal/MTLResource.hpp"
-#include "Metal/MTLSampler.hpp"
-#include "Metal/MTLStageInputOutputDescriptor.hpp"
-#include "Metal/MTLTexture.hpp"
-#include "logger.h"
 #include <unistd.h>
 
-DZRenderer::DZRenderer(SDL_Window *window)
+#include <Foundation/NSTypes.hpp>
+#include <Metal/MTLRenderCommandEncoder.hpp>
+#include <Metal/MTLRenderPipeline.hpp>
+#include <Metal/MTLResource.hpp>
+#include <Metal/MTLSampler.hpp>
+#include <Metal/MTLStageInputOutputDescriptor.hpp>
+#include <Metal/MTLTexture.hpp>
+
+#include "logger.h"
+
+#include "renderer.h"
+
+DZRenderer::DZRenderer(DZWindow &window)
 {
     sdl_renderer = SDL_CreateRenderer(
-            window, 
+            window.sdl_window, 
             -1, 
             SDL_RENDERER_PRESENTVSYNC
         );
@@ -520,8 +523,7 @@ DZTexture DZRenderer::createTexture(TextureData &texture_data)
     td->setHeight(texture_data.height);
 
     Log::verbose("\tCreating Texture Write Region");
-    MTL::Region region(0u, 0u, 
-                       texture_data.width, texture_data.height);
+    MTL::Region region(0u, 0u, texture_data.width, texture_data.height);
 
     Log::verbose("\tCreating GPU Texture");
     MTL::Texture *texture = this->device->newTexture(td);

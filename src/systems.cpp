@@ -1,7 +1,7 @@
 #include "input.h"
 #include "logger.h"
 #include <SDL_scancode.h>
-#define GLM_SWIZZLE
+#define GLM_FORCE_SWIZZLE
 #include "systems.h"
 #include "model.h"
 #include "SDL_keycode.h"

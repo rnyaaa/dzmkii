@@ -1,0 +1,5 @@
+build/
+libs/
+shaders/
+resources/
+include/3rdparty

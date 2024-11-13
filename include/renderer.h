@@ -13,12 +13,13 @@
 #include <Metal/MTLRenderCommandEncoder.hpp>
 #include <Metal/MTLResource.hpp>
 #include <Metal/MTLTexture.hpp>
+#include <Metal/MTLEvent.hpp>
 
-#include "Metal/MTLEvent.hpp"
 #include "mesh.h"
 #include "camera.h"
 #include "sun.h"
 #include "texture.h"
+#include "window.h"
 
 #define EVENT_INIT               0
 #define EVENT_WAITING_FOR_RENDER 1
@@ -60,8 +61,7 @@ struct Binding
 
     static Binding Fragment(T resource, u32 binding)
     {
-        return Binding { 
-            ShaderStage::FRAGMENT, resource, binding };
+        return Binding { ShaderStage::FRAGMENT, resource, binding };
     }
 
     static Binding Vertex(T resource, u32 binding)
@@ -81,8 +81,8 @@ struct DZRenderCommand
         DRAW_MESH
     } type;
 
-
-    union {
+    union 
+    {
         glm::vec3 clear_color;
         Binding<DZBuffer>  buffer_binding;
         Binding<DZTexture> texture_binding;
@@ -170,7 +170,7 @@ struct DZRenderer
 
     MTL::SamplerState *sampler_state;
 
-    DZRenderer(SDL_Window *window);
+    DZRenderer(DZWindow &window);
 
     ~DZRenderer();
 
