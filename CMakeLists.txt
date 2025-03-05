@@ -1,31 +1,25 @@
 cmake_minimum_required(VERSION 3.26)
 
+#set(CMAKE_OSX_SYSROOT "$(xcrun --sdk macosx --show-sdk-path)")
 set(CMAKE_CXX_STANDARD 20)
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
-endif()
-
-set(CMAKE_CXX_FLAGS "")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+#set(CMAKE_CXX_FLAGS "-g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS "-g -Og -Wno-deprecated-volatile -fno-omit-frame-pointer")
+#set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
+#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(DZMKII)
+project(ass_3)
 
 add_subdirectory(libs/metal-cmake)
-add_subdirectory(libs/assimp)
+add_subdirectory(shaders)
 
-include(FetchContent)
+set(METAL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
+add_compile_options(-I${METAL_INCLUDE_DIRS})
 
-FetchContent_Declare(
-	glm
-	GIT_REPOSITORY	https://github.com/g-truc/glm.git
-	GIT_TAG 	bf71a834948186f4097caa076cd2663c69a10e1e #refs/tags/0.9.9.8
-)
-
-FetchContent_MakeAvailable(glm)
+#include(FetchContent)
+#FetchContent_MakeAvailable(glm)
 
 find_package(SDL2 CONFIG REQUIRED)
 
@@ -34,27 +28,25 @@ file(GLOB source_files CONFIGURE_DEPENDS
         src/*.cpp
     )
 
-add_executable(DZMKII 
+add_executable(ass_3 
     ${source_files}
 )
 
-target_include_directories(DZMKII
+target_include_directories(ass_3
     PRIVATE
     include/
     include/3rdparty
     ${SDL2_INCLUDE_DIRS}
     ${GLM_INCLUDE_DIRS}
-    libs/assimp/include
 )
 
 # Evil hackable engine
-target_compile_options(DZMKII PRIVATE -Wno-format-security)
+target_compile_options(ass_3 PRIVATE -Wno-format-security)
 
-target_link_libraries(DZMKII
+target_link_libraries(ass_3
     PRIVATE 
     METAL_CPP 
     ${SDL2_LIBRARIES} 
-    glm::glm
-    assimp
+    #glm::glm
 )
 

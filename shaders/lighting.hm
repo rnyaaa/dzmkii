@@ -1,0 +1,131 @@
+#ifndef _LIGHTING_HM
+#define _LIGHTING_HM
+
+#include <metal_stdlib>
+#include "noise.hm"
+#include "bsdf.hm"
+using namespace metal;
+#define MAX_NO_LIGHTS 50
+
+struct PointLight
+{
+    packed_float3 pos;
+    packed_float3 color;
+    float falloff;
+};
+
+inline float light_falloff(float distance, float lightRadius, float scale) {
+    distance = distance / scale;
+    return pow(clamp(1 - pow(distance/lightRadius, 4), 0.0, 1.0),2) / (pow(distance, 2) + 1);
+}
+
+//inline float3 fresnel(float3 normal, float3 viewDir, float3 fresnelColor)
+//{
+//    float fresnel = dot(normalize(normal), normalize(viewDir));
+//    fresnel = saturate(1.0f - fresnel);
+//    fresnel = pow(fresnel, 4.0);
+//    fresnelColor = fresnel * fresnelColor;
+//    return fresnelColor;
+//}
+//
+//inline float3 diffuse_lighting(float3 normal, float3 to_light, float3 lightColor, float distance, float falloff)
+//{
+//    float3 light_dir = normalize(to_light);
+//    float diffuse_factor = max(dot(normal, light_dir), 0.0);
+//    float intensity = falloff / (distance*distance);
+//
+//    return lightColor * diffuse_factor * intensity;
+//}
+//
+//inline float3 specular_lighting(float3 normal, float3 to_light, float3 viewDir, float3 specularColor, float distance, float falloff)
+//{    
+//    float3 H = normalize(to_light + viewDir);
+//    float NdotH = dot(normal, H);
+//    float specularIntensity = pow(max(NdotH, 0.0), 64.0) * 2.f;
+//    falloff = falloff / (distance * distance);
+//    return specularIntensity * specularColor * falloff; 
+//}
+
+inline float3 skybox_reflection(float3 normal, float3 viewDir, float tod, float u_time)
+{
+    float3 night = {0.01, 0.015, 0.05};
+    float3 day = {0.1, 0.15, 0.4};
+    float3 dawndusk = {100.0/255.0, 30.0/255.0, 30.0/255.0};
+
+    float3 skycolor = tod < 0 ? mix(night, dawndusk, (tod + 1.0)) 
+                              : skycolor = mix(dawndusk, day, tod);
+
+    float2 reflection_vec = reflect(viewDir, normal).xy;
+
+    float2 pos =  reflection_vec * 5;
+    float3 fogColor = {0.0};
+    float2 q = {0.0};
+    q.x = fbm(pos + 0.0 * u_time);
+    q.y = fbm(pos + float2(1.0, 1.0));
+
+    float2 r = {0.0};
+    r.x = fbm(pos + 1.0*q + float2(1.7, 9.2) + 0.15*u_time);
+    r.y = fbm(pos + 1.0*q + float2(8.3, 2.8) + 0.126*u_time);
+
+    float f = fbm(pos + r);
+
+    fogColor = mix(float3(0.101961/64*tod, 0.619608/64*tod, 0.666667/64*tod),
+                float3(0.666667/32*tod, 0.666667/32*tod, 0.498039/32*tod),
+                clamp((f*f)*4.0, 0.0, 1.0));
+
+    fogColor = mix(fogColor, 
+                skycolor,
+                clamp(length(q), 0.0, 1.0));
+
+    fogColor = mix(fogColor,
+                float3(0.666667/8*tod, 1.0/8*tod, 1.0/8*tod),
+                clamp(abs(r.x), 0.0, tod));
+
+    float3 reflection = fogColor; 
+
+    return reflection;
+}
+
+
+//inline float3 do_lighting(float3 fragPos, float3 camPos, float3 sunDir, float3 normal, float3 sunColor, float3 specularColor, float3 diffuseColor, float tod, constant PointLight *lights)
+//{
+//   float3 specular = {0.0};
+//   float3 diffuse = {0.0};
+//
+//   float3 viewDir = normalize(camPos - fragPos);
+//   for(int i = 0; i < MAX_NO_LIGHTS; i++)
+//   {
+//       float3 light_vector = lights[i].pos - fragPos;
+//       float distance = length(light_vector);
+//       specular += specular_lighting(normal, light_vector, viewDir, lights[i].color, distance, lights[i].falloff * 4.0f);
+//       diffuse += diffuse_lighting(normal, light_vector, lights[i].color,  distance, lights[i].falloff); 
+//
+//   }
+//   specular += specular_lighting(normal, sunDir, viewDir, sunColor, 1.0f, 0.3f);
+//   diffuse += diffuse_lighting(normal, sunDir, sunColor, 1.f, tod);
+//
+//   diffuse *= diffuseColor; // ????? 
+//
+//   return specular + diffuse; 
+//}
+
+
+inline float3 do_lighting(Material material, float3x3 to_tangent, float3 fragPos, float3 camPos, Sun sun, constant PointLight *lights)
+{
+    float3 viewDir = normalize(to_tangent * normalize(camPos - fragPos));
+    float3 reflection = 0.0;
+    for(int i = 0; i < MAX_NO_LIGHTS; i++)
+    {
+        float3 lightVec = lights[i].pos - fragPos;
+        float3 lightDir = normalize(lightVec);
+        float dist = length(lightVec);
+        float falloff = light_falloff(dist, lights[i].falloff, 1.0);
+        reflection += lights[i].color * falloff * EvaluateDisney(material, viewDir, lightDir, false, 1.f, 1.f);
+    }
+
+    float3 sunDir = normalize(to_tangent * normalize(sun.sun_dir));
+    reflection += sun.sun_color * EvaluateDisney(material, viewDir, sunDir, false, 0.f, 0.f);
+    
+    return reflection;
+}
+#endif // _LIGHTING_METAL

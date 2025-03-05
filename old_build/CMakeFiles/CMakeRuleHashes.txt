@@ -1,0 +1,9 @@
+# Hashes of file build rules.
+ea6146a4c3cb4df7804810446dd9c84c shaders/CMakeFiles/MetalLibrary
+e5582d907345753bcf5a3926b24330d2 shaders/air/basic_shader.air
+292709e98104e2d15250bbf983e6e32d shaders/air/boid.air
+01011611d075d8f06c4eac8a8b03d91e shaders/air/fog.air
+1a9c8820b089ce567d364b2af2b91f50 shaders/air/lighting.air
+5c8cca4af93404d5b60b27f4089a3292 shaders/air/skyscraper.air
+0dd976a842d815eeb320642d86d5304e shaders/air/terrain_shader.air
+2fb0c8b53173886e32a6c1f2a36ff51a shaders/lib/MyShaders.metallib

@@ -1,4 +1,4 @@
-#define GLM_SWIZZLE
+#define GLM_FORCE_SWIZZLE
 #include <glm/glm.hpp>
 
 #ifndef _VERTEX_H
@@ -22,6 +22,11 @@ struct Vertex
     Vertex withColor(glm::vec3);
     Vertex withNormal(glm::vec3);
     Vertex withUV(glm::vec2);
+    Vertex withTangent(glm::vec3);
+    Vertex withBitangent(glm::vec3);
+
+    Vertex rotated(glm::vec3 axis, float angle);
+    Vertex transformed(glm::mat4x4 matrix);
 
     void calculateTangentAndBitangent();
 };

@@ -1,6 +1,8 @@
-#define GLM_SWIZZLE
+#define GLM_FORCE_SWIZZLE
+#include <glm/geometric.hpp>
+#include <glm/gtc/matrix_transform.hpp> 
+
 #include "vertex.h"
-#include "glm/geometric.hpp"
 
 Vertex::Vertex()
     : pos(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
@@ -69,3 +71,35 @@ Vertex Vertex::withUV(glm::vec2 uv)
     return new_vert;
 }
 
+Vertex Vertex::withTangent(glm::vec3 tangent)
+{
+    Vertex new_vert = *this;
+    new_vert.tangent = glm::vec4(tangent, 0.0f);
+    return new_vert;
+}
+
+Vertex Vertex::withBitangent(glm::vec3 bitangent)
+{
+    Vertex new_vert = *this;
+    new_vert.bitangent = glm::vec4(bitangent, 0.0f);
+    return new_vert;
+}
+
+Vertex Vertex::rotated(glm::vec3 axis, float angle)
+{
+    glm::mat4x4 rotation_matrix(1.0f);
+    rotation_matrix = glm::rotate(rotation_matrix, angle, axis);
+    return this->transformed(rotation_matrix);
+}
+
+Vertex Vertex::transformed(glm::mat4x4 matrix)
+{
+    return Vertex
+    (
+        matrix * pos,
+        matrix * normal,
+        color,
+        matrix * tangent,
+        matrix * bitangent
+    ).withUV(uv);
+}

@@ -14,6 +14,7 @@
 #include <Metal/MTLResource.hpp>
 #include <Metal/MTLTexture.hpp>
 
+#include "Metal/MTLDepthStencil.hpp"
 #include "Metal/MTLEvent.hpp"
 #include "mesh.h"
 #include "camera.h"
@@ -34,7 +35,7 @@ typedef size_t DZShader;
 typedef size_t DZPipeline;
 
 // TODO: Assumes 64 bit size_t, this is to avoid
-//       optionals because Ronja doesn't like good code
+//       optionals 
 //
 //       Another probably more sane option is to reserve
 //       index 0 for any registered asset with the renderer
@@ -74,6 +75,7 @@ struct DZRenderCommand
 {
     enum RenderCommandType
     {
+        SET_DEPTH_STATE,
         SET_PIPELINE,
         SET_CLEAR_COLOR,
         BIND_BUFFER,
@@ -89,9 +91,18 @@ struct DZRenderCommand
         DZTexture texture;
         DZMesh mesh;
         DZPipeline pipeline;
+        bool enable;
     };
 
     DZRenderCommand() {}
+
+    static DZRenderCommand SetDepthState(bool enable)
+    {
+        DZRenderCommand ret;
+        ret.type = SET_DEPTH_STATE;
+        ret.enable = enable;
+        return ret;
+    }
 
     static DZRenderCommand SetPipeline(DZPipeline pipeline)
     {
@@ -170,6 +181,10 @@ struct DZRenderer
 
     MTL::SamplerState *sampler_state;
 
+    MTL::DepthStencilDescriptor *depth_descriptor;
+    MTL::DepthStencilState *depth_state;
+    MTL::DepthStencilState *no_depth_state;
+
     DZRenderer(SDL_Window *window);
 
     ~DZRenderer();
@@ -180,6 +195,7 @@ struct DZRenderer
     void executeCommandQueue();
 
     std::vector<DZShader> compileShaders(std::string shader_src, std::vector<std::string> main_fns);
+    std::vector<DZShader> loadPrecompiledShaders(std::string path, std::vector<std::string> main_fns);
 
     DZPipeline createPipeline(
             DZShader vertex_shader,

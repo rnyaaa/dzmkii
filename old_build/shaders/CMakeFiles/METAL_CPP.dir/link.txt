@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libMETAL_CPP.a CMakeFiles/METAL_CPP.dir/definition.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib libMETAL_CPP.a

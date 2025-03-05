@@ -1,0 +1,29 @@
+#ifndef _FOG_HM
+#define _FOG_HM
+#include <metal_stdlib>
+
+using namespace metal;
+
+
+inline float3 do_fog(float tod)
+{
+    tod = (tod + 1.0)/2.0;
+
+    float3 fogColor = {0.0};
+
+    fogColor = mix(float3(0.101961/64*tod, 0.619608/64*tod, 0.666667/64*tod),
+                float3(0.666667/32*tod, 0.666667/32*tod, 0.498039/32*tod),
+                0.5);
+
+    fogColor = mix(fogColor, 
+                float3(0.0, 0.0, 0.0),
+                 0.5);
+
+    fogColor = mix(fogColor,
+                float3(0.666667/8*tod, 1.0/8*tod, 1.0/8*tod),
+                0.5);
+    return fogColor;
+}
+
+
+#endif // _FOG_HM

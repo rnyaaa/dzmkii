@@ -1,0 +1,7 @@
+# Hashes of file build rules.
+6e8595d74e5472347fac22b2d57d9e07 CMakeFiles/MetalLibrary
+d41381e1323e9be11fd6cc54d623c795 air/boid.air
+8c2823f6ef66b45c644ad4e0696ca911 air/fog.air
+c23ffa431d8163e12401378e7840e5e8 air/skyscraper.air
+25cd0b562368d4220c178660d1d1de21 air/terrain_shader.air
+3883f49733d7b25aea986b4613ae7cf5 lib/MyShaders.metallib

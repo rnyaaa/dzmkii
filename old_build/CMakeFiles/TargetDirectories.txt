@@ -1,0 +1,9 @@
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/CMakeFiles/ass_3.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/CMakeFiles/edit_cache.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/CMakeFiles/rebuild_cache.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/libs/metal-cmake/CMakeFiles/METAL_CPP.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/libs/metal-cmake/CMakeFiles/edit_cache.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/libs/metal-cmake/CMakeFiles/rebuild_cache.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/shaders/CMakeFiles/MetalLibrary.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/shaders/CMakeFiles/edit_cache.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/shaders/CMakeFiles/rebuild_cache.dir

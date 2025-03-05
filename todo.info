@@ -1,0 +1,133 @@
+TODO:
+
+Disney BSDF
+Ocean 
+    - refactor terrain to have oceans
+        - some sort of easing into the ocean
+    - make ocean shader 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+W8 af hverju erum við að búa til standard plane í hvert skipti sem við generetum terrain og síðan að displacea Zaið þegar við getum bara copyað standard plane og síðan displaceað Zið??
+
+Options:
+	Lazy: geyma preset plane vertex data og spinna í gegnum það, modifying Zaið
+
+	Weird: pack a bunch of quads, each m sitt Z-a vertex fucked w og senda a circle of them to the shader from the point of origin of the camera??
+
+
+Material viewer m skybox og spinning sphere af materialinu
+
+Low res version af ground terrain til að rendera lengra í burtu??
+
+Cutta in CG animations af drum
+	
+The world:
+
+	domain warping algorithm sem getur búið il nice distortions’
+
+	Lightning strikes randomly. It never hits close to friendly units.Some upgrades can increase frequency it hits enemy units. 
+
+	One team type has weak units but en masse, utilising giant waves to crush enemies
+
+	One team can wipe away your old LOS. Maybe changes the territory too?
+
+	For biomes with uneven / irregular terrain:
+			could it make sense to have the ‘raised’ cliffy parts of the biome use a model, much like a tree model to ‘fill in’ the raised areas? Much to explore.
+
+wispy floating things roam around badlands passing through other units, not paying attention to any of them (save for a few conditions in which they 'freeze' and stare at target unit)
+
+lava flow terrain, elevated og úfið
+
+	‘Border System’
+		 A means to wall off your portion of the map to prevent enemy units from spawning within it, as darkness can spawn great terrors. Utilises walls? lights? Either way there must be a great cost to territory.
+		Encourages the player to play defensively, build forward garrisons and spread around the units.
+
+
+Unit types:
+
+	Unit that casts a ‘freeze’ type spell on two-three targets and then fights with ranged attacks. Possible a root-grab style freeze or a magic prism or a phantasmal wall of some sort. The range attack could be magic or it could 	be arrows.
+
+	Daddy long leg spiders that lay dormant, feet sticking out of the ground like this =  /\_/\ 
+			will attack when your units get closer, waking up those around them.
+
+	Bullish enemies that can ‘charge’, disrupting your melee units (stunning — even knocking them back if it is feasible)
+
+	Some flesh kind of flying monster like a mutalisk?
+
+	An anti-LOS demon. Doesn’t let you see what it’s doing to your units, but if it kills them it leaves only a puddle of blood. Tricky to kill — should be slow so it’s not too unfair
+
+sorting algorithm baddie. sort the pixels around themselves.
+
+spider mothers - spawn thousands of lil one
+
+
+Micriobiomes:
+
+	The expanding wall cell
+		spawns terrible ghosts or beasts inside
+		unique kind of corrupted tile inside
+		great treasure too
+
+	Thorn Grove
+		spike trees abound.
+		some spikes protrude from the ground and will attack when units come close
+		some are structures others are the tails of beasts who rise after the first attack. 
+		thorny roots sometimes sprout to damage your units.
+
+	Stormcell
+		bad visibility. Weather effects.
+		stuðlaberg tile set. Uneven ground.
+
+		stuðlaberg tree models
+			- one jutting really high
+			- some with stuðlaberg support around
+
+		constant storms erupt.
+		wind demons may spawn. Needs a certain damage type to harm them.
+		lightning strikes constantly, some hitting your units.
+
+	Obsidian Eye.
+		obsidian ground tile set
+		no environmental audio here.
+		eye in the centre, streams emanate from it.
+			- eye may shoot focused beams or blood spouts
+		obsidian hulks and strange casters.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://archive.org/details/file04_netnihisomu
+Sample this asp

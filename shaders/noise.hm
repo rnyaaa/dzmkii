@@ -1,0 +1,50 @@
+#ifndef _NOISE_HM
+#define _NOISE_HM
+
+#include <metal_stdlib>
+using namespace metal;
+#define NUM_OCTAVES 5
+
+inline float random(float2 pos)
+{
+    return fract(sin(dot(pos, float2(12.9898, 78.233))) * 43758.5453123);
+};
+
+
+inline float noise(float2 pos)
+{
+    float2 i = floor(pos);
+    float2 f = fract(pos);
+
+    float a = random(i);
+    float b = random(i + float2(1.0, 0.0));
+    float c = random(i + float2(0.0, 1.0));
+    float d = random(i + float2(1.0, 1.0));
+
+    float2 u = f * f * (3.0 - 2.0 * f);
+
+    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+};
+
+inline float fbm(float2 pos)
+{
+    float v = 0.0;
+    float a = 0.5;
+
+    float2 shift = {100.0};
+    // Rotate to reduce 'axial bias' (TODO: research)
+
+    float2x2 rot = float2x2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
+
+    for(int i = 0; i < NUM_OCTAVES; i++)
+    {
+        v += a * noise(pos);
+        pos = rot * pos * 2.0 + shift;
+        a *= 0.5;
+    }
+
+    return v;
+};
+
+
+#endif // _NOISE_HM

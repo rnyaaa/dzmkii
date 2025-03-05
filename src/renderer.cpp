@@ -1,5 +1,8 @@
 #include "renderer.h"
 #include "Foundation/NSTypes.hpp"
+#include "Metal/MTLBlitCommandEncoder.hpp"
+#include "Metal/MTLDepthStencil.hpp"
+#include "Metal/MTLPixelFormat.hpp"
 #include "Metal/MTLRenderCommandEncoder.hpp"
 #include "Metal/MTLRenderPipeline.hpp"
 #include "Metal/MTLResource.hpp"
@@ -33,12 +36,21 @@ DZRenderer::DZRenderer(SDL_Window *window)
     sampler_desc->setRAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
     sampler_desc->setSAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
     sampler_desc->setTAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
+    sampler_desc->setMagFilter(MTL::SamplerMinMagFilter::SamplerMinMagFilterLinear);
+    sampler_desc->setMipFilter(MTL::SamplerMipFilterLinear);
 
     sampler_state = device->newSamplerState(sampler_desc);
 
     sampler_desc->release();
 
-    clear_color = MTL::ClearColor(1.0, 0.0, 1.0, 1.0);
+    this->depth_descriptor = MTL::DepthStencilDescriptor::alloc()->init();
+    this->depth_descriptor->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
+    this->depth_descriptor->setDepthWriteEnabled(true);
+    this->depth_state = device->newDepthStencilState(this->depth_descriptor);
+    this->depth_descriptor->setDepthWriteEnabled(false);
+    this->no_depth_state = device->newDepthStencilState(this->depth_descriptor);
+
+    clear_color = MTL::ClearColor(0.5, 0.6, 0.5, 1.0);
 }
 
 DZRenderer::~DZRenderer()
@@ -94,9 +106,18 @@ void DZRenderer::executeCommandQueue()
     auto encoder 
         = buffer->renderCommandEncoder(pass_descriptor);
 
+    encoder->setDepthStencilState(this->depth_state);
+
     for (const auto &command : command_queue)
     {
-        if (command.type == DZRenderCommand::SET_PIPELINE)
+        if (command.type == DZRenderCommand::SET_DEPTH_STATE)
+        {
+            if (command.enable)
+                encoder->setDepthStencilState(this->depth_state);
+            else
+                encoder->setDepthStencilState(this->no_depth_state);
+        }
+        else if (command.type == DZRenderCommand::SET_PIPELINE)
         {
             encoder->setRenderPipelineState(
                 this->pipelines[command.pipeline]);
@@ -119,6 +140,13 @@ void DZRenderer::executeCommandQueue()
         else if (command.type == DZRenderCommand::BIND_BUFFER)
         {
             Binding<DZBuffer> binding = command.buffer_binding;
+
+            // TODO: Maybe a lil ifdef ERROR_CHECK or smth
+            if (binding.resource < 0 
+                    || binding.resource >= this->general_buffers.size())
+            {
+                Log::error("Bogus buffer binding: %d", binding.resource);
+            }
 
             MTL::Buffer *buf = this->general_buffers[
                     binding.resource
@@ -281,6 +309,42 @@ std::vector<DZShader> DZRenderer::compileShaders(
     return ret;
 }
 
+std::vector<DZShader> DZRenderer::loadPrecompiledShaders(std::string path, std::vector<std::string> main_fns)
+{
+    using NS::StringEncoding::UTF8StringEncoding;
+
+    NS::Error* error = nullptr;
+    MTL::Library *library = device->newLibrary(
+            NS::String::string(path.c_str(), UTF8StringEncoding),
+            &error
+        );
+
+    if (library == nullptr)
+    {
+        Log::error(
+                "Error initializing shader library\n%s\n", 
+                error->localizedDescription()->utf8String()
+            );
+        return {};
+    }
+
+    std::vector<DZShader> ret = {};
+
+    for (auto &fn : main_fns)
+    {
+        MTL::Function *mtl_fn = library->newFunction(
+            NS::String::string(fn.c_str(), UTF8StringEncoding)
+        );
+        // TODO: Successful?
+        ret.push_back(this->shaders.size());
+        this->shaders.push_back(mtl_fn);
+    }
+
+    library->release();
+
+    return ret;
+}
+
 DZPipeline DZRenderer::createPipeline(
         DZShader vertex_shader, DZShader fragment_shader
     )
@@ -289,6 +353,7 @@ DZPipeline DZRenderer::createPipeline(
 
     auto pipeline_desc 
         = MTL::RenderPipelineDescriptor::alloc()->init();
+    pipeline_desc->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float_Stencil8);
     pipeline_desc->setVertexFunction(shaders[vertex_shader]);
     pipeline_desc->setFragmentFunction(shaders[fragment_shader]);
     pipeline_desc
@@ -476,6 +541,7 @@ DZTextureArray DZRenderer::createTextureArray
     td->setWidth(tex_width);
     td->setHeight(tex_height);
     td->setArrayLength(texture_datas.size());
+    td->setMipmapLevelCount(8);
 
     Log::verbose("\tCreating GPU Texture");
     MTL::Texture *texture = this->device->newTexture(td);
@@ -492,11 +558,17 @@ DZTextureArray DZRenderer::createTextureArray
                 region, 
                 0, 
                 slice,
-                texture_datas[slice].data.data(), 
+                texture_datas[slice].data.get(), 
                 bytes_per_row,
                 bytes_per_tex
             );
     }
+
+    MTL::CommandBuffer *buffer = queue->commandBuffer();
+    MTL::BlitCommandEncoder *encoder = buffer->blitCommandEncoder();
+    encoder->generateMipmaps(texture);
+    encoder->endEncoding();
+    buffer->commit();
 
     DZTextureArray ret = this->texture_arrays.size();
 
@@ -530,7 +602,7 @@ DZTexture DZRenderer::createTexture(TextureData &texture_data)
     texture->replaceRegion(
             region, 
             0, 
-            texture_data.data.data(), 
+            texture_data.data.get(), 
             texture_data.width * texture_data.num_channels
         );
 

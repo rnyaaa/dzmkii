@@ -16,8 +16,10 @@ namespace DZKey {
          A, S, D, F, G, H, J, K, L,
           Z, X, C, V, B, N, M,
         F1, F2, F3, F4, F5, F6, F7, F8, F9, F10,
+        SPACE,
         ESC,
         BACKSPACE,
+        SHIFT,
         UP,
         DOWN,
         LEFT,
@@ -42,6 +44,8 @@ struct InputState
         v2i delta;
         u8 timer;
         s32 wheel_delta = 0;
+        f32 xrel = 0;
+        f32 yrel = 0;
         bool left_button_down = false;
         bool middle_button_down = false;
         bool right_button_down = false;
@@ -109,6 +113,11 @@ struct InputState
                     this->mouse.clicked = true;
                 }
             }
+            else if (e.type == SDL_MOUSEMOTION)
+            {
+                this->mouse.xrel = e.motion.xrel;
+                this->mouse.yrel = e.motion.yrel;
+            }
         }
 
 #       define SET_KEY_DOWN(SDL_SCANCODE, DZKEY) \
@@ -163,8 +172,10 @@ struct InputState
         SET_KEY_DOWN(SDL_SCANCODE_F8, DZKey::M);
         SET_KEY_DOWN(SDL_SCANCODE_F9, DZKey::M);
         SET_KEY_DOWN(SDL_SCANCODE_F10, DZKey::M);
+        SET_KEY_DOWN(SDL_SCANCODE_SPACE, DZKey::SPACE);
         SET_KEY_DOWN(SDL_SCANCODE_ESCAPE, DZKey::ESC);
         SET_KEY_DOWN(SDL_SCANCODE_BACKSPACE, DZKey::BACKSPACE);
+        SET_KEY_DOWN(SDL_SCANCODE_LSHIFT, DZKey::SHIFT);
         SET_KEY_DOWN(SDL_SCANCODE_UP, DZKey::UP);
         SET_KEY_DOWN(SDL_SCANCODE_DOWN, DZKey::DOWN);
         SET_KEY_DOWN(SDL_SCANCODE_LEFT, DZKey::LEFT);

@@ -1,0 +1,92 @@
+[
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/asset.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/asset.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/asset.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/asset.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/boid.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/boid.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/boid.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/boid.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/camera.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/camera.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/camera.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/camera.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/geometry.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/geometry.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/geometry.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/geometry.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/logger.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/logger.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/logger.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/logger.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/main.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/main.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/main.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/main.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/noise.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/noise.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/noise.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/noise.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/renderer.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/renderer.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/renderer.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/renderer.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/scene.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/scene.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/scene.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/scene.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/sun.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/sun.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/sun.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/sun.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/systems.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/systems.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/systems.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/systems.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/terrain.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/terrain.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/terrain.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/terrain.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/texture.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/texture.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/texture.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/texture.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/include/3rdparty -I/opt/homebrew/Cellar/sdl2/2.30.6/include -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -isystem /opt/homebrew/Cellar/sdl2/2.30.6/include/SDL2 -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -Wno-format-security -o CMakeFiles/ass_3.dir/src/vertex.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/vertex.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/src/vertex.cpp",
+  "output": "CMakeFiles/ass_3.dir/src/vertex.cpp.o"
+},
+{
+  "directory": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/build/libs/metal-cmake",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp -I/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/metal-cpp-extensions -g -Og -Wno-deprecated-volatile -fsanitize=address -fno-omit-frame-pointer -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk -mmacosx-version-min=12.5 -o CMakeFiles/METAL_CPP.dir/definition.cpp.o -c /Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/definition.cpp",
+  "file": "/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/libs/metal-cmake/definition.cpp",
+  "output": "libs/metal-cmake/CMakeFiles/METAL_CPP.dir/definition.cpp.o"
+}
+]

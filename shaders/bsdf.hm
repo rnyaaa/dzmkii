@@ -1,0 +1,460 @@
+#ifndef _BSDF_HM
+#define _BSDF_HM
+#include <metal_stdlib>
+#include "lighting.hm"
+#include "trigonometry.hm"
+#include "math.hm"
+#include "headers.hm"
+
+// Based on Selas's (Joe Schutte) implementation of the Disney BRDF 
+// who based it on the implementation in the Disney BRDF Explorer
+// https://schuttejoe.github.io/post/disneybsdf/
+// Disney BRDF was presented at SIGGRAPH 2012 and 2015 by Brent Burley
+
+using namespace metal;
+
+inline float FresnelSchlickFromRelativeIOR(float eta)
+{
+    return Square(eta - 1.f) / Square(eta + 1.f);
+}
+
+inline float FresnelSchlickWeight(float u)
+{
+    float m = saturate(1.f - u);
+    return pow(m, 5);
+}
+
+inline float3 FresnelSchlickVec(float3 r0, float radians)
+{
+    float exponential = pow(1.f - radians, 5.f);
+    return r0 + (float3(1.f) - r0) * exponential;
+}
+
+inline float FresnelSchlick(float r0, float radians)
+{
+    return mix(1.f, FresnelSchlickWeight(radians), r0);
+}
+
+inline float FresnelDielectric(float cosThetaI, float ni, float nt)
+{
+    cosThetaI = clamp(cosThetaI, -1.f, 1.f);
+
+    if(cosThetaI < 0.f)
+    {
+        float temp = ni;
+        ni = nt;
+        nt = temp;
+        
+        cosThetaI = -cosThetaI;
+    }
+
+    float sinThetaI = sqrt(max(0.f, 1.f - cosThetaI * cosThetaI));
+    float sinThetaT = ni / nt * sinThetaI;
+
+    if(sinThetaT >= 1)
+    {
+        return 1;
+    }
+
+    float cosThetaT = sqrt(max(0.f, 1.f - sinThetaT * sinThetaT));
+    
+    float rParallel      = ((nt * cosThetaI) - (ni * cosThetaT)) / ((nt * cosThetaI) + (ni * cosThetaT));
+    float rPerpendicular = ((ni * cosThetaI) - (nt * cosThetaT)) / ((ni * cosThetaI) + (nt * cosThetaT));
+    return (rParallel * rParallel + rPerpendicular * rPerpendicular) / 2;
+}
+
+// === SHEEN ===
+
+
+inline float3 CalculateTint(float3 baseColor)
+{
+    float luminance = dot(float3(0.2126f, 0.7152f, 0.0722f), baseColor);
+    return (luminance > 0.0f) ? baseColor * (1.0f / luminance) : float3(1.f, 1.f, 1.f);
+}
+
+// wi : incident direction --   light -> surface 
+// wo : outgoing direction -- surface -> camera 
+// wm : microfacet normal 
+// f(sheen, theta_D) = sheen * ((1 - sheenTint) + seenTint * tint) * (1 - cos theta_D)^5
+// similar to fresnel 
+
+inline float3 EvaluateSheen(const Material material, float3 wo, float3 wm, float3 wi)
+{
+    if(material.sheen <= 0.f)
+    {
+        return float3(0.f, 0.f, 0.f);
+    }
+
+    float HdotL = dot(wm, wi);
+    float3 tint = CalculateTint(material.color);
+    return material.color * mix(float3(1.f), tint, material.sheen_tint) * FresnelSchlickWeight(HdotL);
+}
+
+
+// === CLEARCOAT ===
+
+
+// clearcoat microfacet 
+// Generalized Throwbidge Reitz.
+
+inline float GTR1(float absHdotL, float a)
+{
+    if(a >= 1)
+    {
+        return 1 / M_1_PI_F; // INV_PI? M_1_PI_F ?
+    }
+    
+    float asq = a * a;
+    return (asq - 1.f) / (M_PI_F * log2(asq) * (1.f + (asq - 1.f) * absHdotL * absHdotL));
+}
+
+// more info: 
+// https://ubm-twvideo01.s3.amazonaws.com/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf
+
+// w  :   vector of either incoming or outgoing light relative to surface normal
+
+inline float BSDFSeperableSmithGGXG1(float3 w, float a)
+{
+    float asq = a * a;
+    float absNdotV = AbsCosTheta(w);   // AbsCosTheta
+    return 2.f / (1.f + sqrt(asq + (1 - asq) * absNdotV * absNdotV));
+}
+
+// rPdf   -- Forward PDF (probability density function) : PDF for dir of incoming light wi
+//           rel to microfacet normal wm 
+// fPdfW  -- Reverse PDF : PDF for the outgoing/view dir wo rel to microfacet normal.
+
+inline float EvaluateDisneyClearcoat(float clearcoat, float alpha, float3 wo, float3 wm, float3 wi, thread float &fPdfW, thread float& rPdfW)
+{
+    if(clearcoat <= 0.f)
+    {
+        return 0.f;
+    }
+
+    float absNdotH = AbsCosTheta(wm);  // AbsCosTheta
+    float absNdotL = AbsCosTheta(wi);  // AbsCosTheta 
+    float absNdotV = AbsCosTheta(wo);  // AbsCosTheta
+
+    float HdotL = dot(wm, wi);
+
+    float d = GTR1(absNdotH, mix(0.1f, 0.001f, alpha));
+    float f = FresnelSchlick(0.04f, HdotL);
+    float gl = BSDFSeperableSmithGGXG1(wi, 0.25f);
+    float gv = BSDFSeperableSmithGGXG1(wo, 0.25f);
+
+    fPdfW = d / (4.f * absNdotL);
+    rPdfW = d / (4.f * absNdotV);
+
+    return 0.25f * clearcoat * d * f * gl * gv;
+}
+
+
+// === SPECULAR BRDF ===
+
+
+inline float GgxAnisotropicD(float3 wm, float ax, float ay)
+{
+    float HdotX2 = wm.x * wm.x;
+    float HdotY2 = wm.z * wm.z;
+    float cos2theta = Cos2Theta(wm); // Cos2Theta ????
+    
+    float ax2 = ax * ax;
+    float ay2 = ay * ay;
+
+    return 1.f /  (M_PI_F * ax * ay * Square(HdotX2 / ax2 + HdotY2 / ay2 + cos2theta));
+
+}
+
+inline float BRDFSeperableSmithGGXG1(float3 w, float3 wm, float ax, float ay)
+{
+    float HdotW = dot(w, wm);
+    if(HdotW <= 0.f)
+    {
+        return 0.f;
+    }
+
+    float absTanTheta = abs(tan(w.z));
+    if(absTanTheta == INFINITY)
+    {
+        return 0.f;
+    }
+
+    float a = sqrt(Cos2Phi(w) * ax * ax + Sin2Phi(w) * ay * ay);
+    float a2Tan2Theta = Square(a * absTanTheta);
+    
+    float lambda = 0.5f * (-1.f * sqrt(1.f + a2Tan2Theta));
+    return 1.f / (1.f + lambda);
+}
+
+inline void GgxVndfAnisotropicPdf(float3 wi, float3 wm, float3 wo, float ax, float ay, thread float &fPdfW, thread float &rPdfW)
+{
+    float D = GgxAnisotropicD(wm, ax, ay);
+
+    float absNdotL = AbsCosTheta(wi);
+    float absHdotL = abs(dot(wm, wi));
+    float G1v = BRDFSeperableSmithGGXG1(wo, wm, ax, ay);
+
+    // replace forward pdf W
+    fPdfW = G1v * absHdotL * D / absNdotL;
+
+    float absNdotV = AbsCosTheta(wo);
+    float absHdotV = abs(dot(wm, wo));
+    float G1l = BRDFSeperableSmithGGXG1(wi, wm, ax, ay);
+
+    // replace reverse pdf W
+    rPdfW = G1l * absHdotV * D / absNdotV;
+}
+
+inline float3 FresnelDisney(Material material, float3 wo, float3 wm, float3 wi)
+{
+    float HdotV = abs(dot(wm, wo));
+    float3 tint = CalculateTint(material.color);
+
+    float3 R0 = FresnelSchlickFromRelativeIOR(material.relative_ior) * mix(float3(1.f, 1.f, 1.f), tint, material.specular_tint);
+
+    R0 = mix(R0, material.color, material.metallic);
+    float dielectric_fresnel = FresnelDielectric(HdotV, 1.f, material.ior);
+    float3 metallic_fresnel = FresnelSchlickVec(R0, dot(wi, wm));
+
+    return mix(float3(dielectric_fresnel), metallic_fresnel, material.metallic);
+}
+
+inline float3 EvaluateDisneyBRDF(Material material, float3 wo, float3 wm, float3 wi, thread float &fPdf, thread float &rPdf)
+{
+    fPdf = 0.f;
+    rPdf = 0.f;
+
+    float NdotL = CosTheta(wi);
+    float NdotV = CosTheta(wo);
+
+    if(NdotL <= 0.f || NdotV <= 0.f)
+    {
+        return 0.f;
+    }
+
+    float aspect = sqrt(1.f - 0.9f * material.anisotropic);
+    float ax = max(0.001f, Square(material.roughness) / aspect);
+    float ay = max(0.001f, Square(material.roughness) * aspect);
+
+    float d = GgxAnisotropicD(wm, ax, ay);
+    float gl = BRDFSeperableSmithGGXG1(wi, wm, ax, ay);
+    float gv = BRDFSeperableSmithGGXG1(wo, wm, ax, ay);
+
+    float3 f = FresnelDisney(material, wo, wm, wi);
+    
+    GgxVndfAnisotropicPdf(wi, wm, wo, ax, ay, fPdf, rPdf);
+    fPdf *= (1.f / (4 * abs(dot(wo, wm))));
+    rPdf *= (1.f / (4 * abs(dot(wi, wm))));
+
+    return d * gl * gv * f / (4.f * NdotL * NdotV);
+}
+
+
+// === SPECULAR BSDF ===
+
+
+inline float ThinTransmissionRoughness(float ior, float roughness)
+{
+    return saturate((0.65f * ior - 0.35f) * roughness);
+}
+
+inline float3 EvaluateDisneySpecTransmission(Material material, float3 wo, float3 wm, float3 wi, float ax, float ay, bool thin)
+{
+    float relative_ior = material.relative_ior;
+    float r_ior_2 = relative_ior * relative_ior;
+
+    float absNdotL = AbsCosTheta(wi);
+    float absNdotV = AbsCosTheta(wo);
+    float HdotL = dot(wm, wi);
+    float HdotV = dot(wm, wo);
+    float absHdotL = abs(HdotL);
+    float absHdotV = abs(HdotV);
+
+    float d = GgxAnisotropicD(wm, ax, ay);
+    float gl = BRDFSeperableSmithGGXG1(wi, wm, ax, ay);
+    float gv = BRDFSeperableSmithGGXG1(wo, wm, ax, ay);
+
+    float f = FresnelDielectric(HdotV, 1.f, 1.f / material.relative_ior);
+
+    float3 color;
+    if(thin)
+    {
+        color = sqrt(material.color);
+    } else {
+        color = material.color;
+    }
+
+    // Note: Schutte leaves out the 1/n2 (1 / r_ior_2) spreading factor for 
+    // particles I should investigate further, since I will not be using this 
+    // for particles.
+
+    float c = (absHdotL * absHdotV / absNdotL * absNdotV);
+    float t = (r_ior_2 / Square(HdotL + relative_ior * HdotV));
+
+    return color * c * t * (1.f - f) * gl * gv * d;
+}
+
+// === DIFFUSE BRDF ===
+
+inline float EvaluateDisneyRetroDiffuse(Material material, float3 wo, float3 wm, float3 wi)
+{
+    float NdotL = AbsCosTheta(wi);
+    float NdotV = AbsCosTheta(wo);
+
+    float roughness = material.roughness * material.roughness;
+    float rr = 0.5f + 2.f * NdotL * NdotL * roughness;
+    float fl = FresnelSchlickWeight(NdotL);
+    float fv = FresnelSchlickWeight(NdotV);
+
+    return rr * (fl + fv + fl * fv * (rr - 1.f));
+}
+
+inline float EvaluateDisneyDiffuse(Material material, float3 wo, float3 wm, float3 wi, bool thin)
+{
+    float NdotL = AbsCosTheta(wi);
+    float NdotV = AbsCosTheta(wo);
+
+    float fl = FresnelSchlickWeight(NdotL);
+    float fv = FresnelSchlickWeight(NdotV);
+
+    // if the material is thin, we use the Hanrahan Krueger diffuse model
+    float hanrahan_krueger = 0.f;
+
+    if(thin && material.flatness > 0.f)
+    {
+        float roughness = material.roughness * material.roughness;
+        float HdotL = dot(wm, wi);
+        // NOTE TO SELF: INVESTIGATE WHAT IS FSS90 AND WHY?
+        float fss90 = HdotL * HdotL * roughness;
+        float fss   = mix(1.f, fss90, fl) * mix(1.f, fss90, fv);
+        float ss    = 1.25f * (fss * (1.f / (NdotL + NdotV) - 0.5f) + 0.5f);
+        hanrahan_krueger = ss;
+    }
+
+    float lambert = 1.f;
+    float retro = EvaluateDisneyRetroDiffuse(material, wo, wm, wi);
+    float subsurface_approx = mix(lambert, hanrahan_krueger, thin ? material.flatness : 0.f);
+    return 1/M_1_PI_F * (retro + subsurface_approx * (1.f - 0.5f * fl) * (1.f - 0.5f * fv));
+}
+
+// === EVALUATE ALL ===
+
+inline void CalculateAnisotropicParams(float roughness, float anisotropic, thread float &ax, thread float &ay)
+{
+    float aspect = sqrt(1.f - 0.9f * anisotropic);
+    ax = clamp(max(0.001f, (roughness * roughness) / aspect), 0.001f, 1.f);
+    ay = clamp(max(0.001f, (roughness * roughness) * aspect), 0.001f, 1.f);
+}
+
+inline void CalculateLobePdfs(thread Material &material, thread float &pSpecular, thread float &pDiffuse, thread float &pClearcoat, thread float &pSpecTrans)
+{
+    float metallicBRDF = material.metallic;
+    float specularBSDF = (1.f - material.metallic) * material.specular_strength;
+    float dielectricBRDF = (1.f - material.specular_strength) * (1.f - material.metallic);
+
+    float specular_weight = metallicBRDF + dielectricBRDF;
+    float transmission_weight = specularBSDF;
+    float diffuse_weight = dielectricBRDF;
+    float clearcoat_weight = 1.f * saturate(material.clearcoat);
+
+    float norm = 1.f / (specular_weight + transmission_weight + diffuse_weight + clearcoat_weight);
+
+    pSpecular = specular_weight * norm;
+    pSpecTrans = transmission_weight * norm;
+    pDiffuse = diffuse_weight * norm;
+    pClearcoat = clearcoat_weight * norm;
+}
+
+inline float3 EvaluateDisney(Material material, float3 wo, float3 wi, bool thin, float forwardPdf, float reversePdf)
+{
+    float3 wm = wo + wi;
+    
+    if(length(wm) < 1e-5f) return float3(0.0f);
+    wm /= length(wm);
+
+    float NdotV = CosTheta(wo);
+    float NdotL = CosTheta(wi);
+
+    float3 reflectance = float3(0.f, 0.f, 0.f);
+    forwardPdf = 0.f;
+    reversePdf = 0.f;
+
+    float pBRDF, pDiffuse, pClearcoat, pSpecTrans;
+    CalculateLobePdfs(material, pBRDF, pDiffuse, pClearcoat, pSpecTrans);
+
+    float metallic = material.metallic;
+    float specular_strength = material.specular_strength;
+
+    float ax, ay;
+    CalculateAnisotropicParams(material.roughness, material.anisotropic, ax, ay);
+
+    float diffuse_weight = (1.f - metallic) * (1.f - specular_strength);
+    float trans_weight   = (1.f - metallic) * specular_strength;
+
+    bool upper_hemisphere = NdotL > 0.f && NdotV > 0.f;
+    if(upper_hemisphere && material.clearcoat > 0.f)
+    {
+        float forward_clearcoat_pdfw;
+        float reverse_clearcoat_pdfw;
+
+        float clearcoat = EvaluateDisneyClearcoat(material.clearcoat, material.clearcoat_gloss, wo, wm, wi, forward_clearcoat_pdfw, reverse_clearcoat_pdfw);
+
+        reflectance += float3(clearcoat);
+        forwardPdf += pClearcoat * forward_clearcoat_pdfw;
+        reversePdf += pClearcoat * reverse_clearcoat_pdfw;
+    }
+
+    if(diffuse_weight > 0.f)
+    {
+        float forward_diffuse_pdfw = AbsCosTheta(wi);
+        float reverse_diffuse_pdfw = AbsCosTheta(wo);
+
+        float diffuse = EvaluateDisneyDiffuse(material, wo, wm, wi, thin);
+
+        float3 sheen = EvaluateSheen(material, wo, wm, wi);
+
+        reflectance += diffuse_weight * (diffuse * material.color + sheen);
+
+        forwardPdf += pDiffuse * forward_diffuse_pdfw;
+        reversePdf += pDiffuse * reverse_diffuse_pdfw;
+    }
+
+    if(trans_weight > 0.f)
+    {
+        float rscaled = thin? ThinTransmissionRoughness(material.ior, material.roughness) : material.roughness;
+        float tax, tay;
+        CalculateAnisotropicParams(rscaled, material.anisotropic, tax, tay);
+        
+        float3 transmission = EvaluateDisneySpecTransmission(material, wo, wm, wi, tax, tay, thin);
+        reflectance += trans_weight * transmission;
+
+        float forward_transmissive_pdfw;
+        float reverse_transmissive_pdfw;
+
+        GgxVndfAnisotropicPdf(wi, wm, wo, tax, tay, forward_transmissive_pdfw, reverse_transmissive_pdfw);
+        float LdotH = dot(wm, wi);
+        float VdotH = dot(wm, wo);
+
+        forwardPdf += pSpecTrans * forward_transmissive_pdfw / Square(LdotH + material.relative_ior * VdotH);
+        reversePdf += pSpecTrans * reverse_transmissive_pdfw / Square(VdotH + material.relative_ior * LdotH);
+    }
+
+    if(upper_hemisphere) 
+    {
+        float forward_metallic_pdfw;
+        float reverse_metallic_pdfw;
+
+        float3 specular = EvaluateDisneyBRDF(material, wo, wm, wi, forward_metallic_pdfw, reverse_metallic_pdfw);
+        reflectance += specular;
+        forwardPdf += pBRDF * forward_metallic_pdfw / (4 * abs(dot(wo, wm)));
+        reversePdf += pBRDF * reverse_metallic_pdfw / (4 * abs(dot(wi, wm)));
+    }
+
+    reflectance = reflectance * abs(NdotL);
+    // TODO: WHY abs??
+    //reflectance = reflectance * clamp(NdotL, 0.0, 1.0);
+    reflectance = reflectance * Square(0.5 * (NdotL + 1));
+
+    return reflectance;
+}
+#endif // _BSDF_HM

@@ -61,7 +61,7 @@ std::vector<std::string> AssetManager::findMatchingFiles(
     return matches;
 }
 
-std::optional<TextureData> AssetManager::getTexture(const std::string &filename)
+std::optional<AssetHandle<TextureData>> AssetManager::loadTexture(const fs::path &filename)
 {
     Log::verbose("Getting Texture...");
     std::vector<std::string> matches = this->findMatchingFiles(filename);
@@ -141,20 +141,33 @@ std::optional<TextureData> AssetManager::getTexture(const std::string &filename)
         Log::warning("Number of channels (%d) does not match expected: %d", 
                 num_channels, STBI_rgb_alpha);
 
-    TextureData td = TextureData(width, height, num_channels, texture_data);
+    std::shared_ptr<u8> shared_texture_data(texture_data);
+    TextureData td = TextureData(width, height, num_channels, shared_texture_data);
 
-    free(texture_data);
+    auto handle = textures.insert(td);
 
-    return td;
+    return handle;
 }
 
-std::optional<std::string> AssetManager::getTextFile(const std::string &path)
+std::optional<AssetHandle<std::string>> AssetManager::loadText(const fs::path &path)
 {
-    // TODO: Do actual smart asset management stuff here
     std::ifstream file_stream(path);
     std::stringstream text_stream;
-
     text_stream << file_stream.rdbuf();
 
-    return text_stream.str();
+    loaded[path] = std::chrono::system_clock::now();
+    auto handle = text_data.insert(text_stream.str());
+
+    return handle;
 }
+
+std::optional<TextureData> AssetManager::getTextureData(AssetHandle<TextureData> handle)
+{
+    return textures.get(handle);
+}
+
+std::optional<std::string> AssetManager::getText(AssetHandle<std::string> handle)
+{
+    return text_data.get(handle);
+}
+

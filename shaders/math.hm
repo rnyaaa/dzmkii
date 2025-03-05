@@ -1,0 +1,20 @@
+
+#ifndef _MATH_HM
+#define _MATH_HM
+
+#include <metal_stdlib>
+using namespace metal;
+
+// Based on:
+// https://github.com/schuttejoe/Selas/blob/56a7fab5a479ec93d7f641bb64b8170f3b0d3095/Source/Core/MathLib/Trigonometric.h#L56
+// By Selas (Joe Schutte)
+// modified by ronja to fit a Z-UP tangent space 
+//
+
+inline float Square(float x)
+{
+    return x * x;
+}
+
+
+#endif // _MATH_HM

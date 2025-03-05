@@ -1,0 +1,3 @@
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/shaders/CMakeFiles/MetalLibrary.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/shaders/CMakeFiles/edit_cache.dir
+/Users/ronjajohannsdottir/Documents/Skóli/tolvugrafik/3d_game/shaders/CMakeFiles/rebuild_cache.dir
