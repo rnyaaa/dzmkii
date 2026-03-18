@@ -18,7 +18,6 @@
 #include "Metal/MTLEvent.hpp"
 #include "mesh.h"
 #include "camera.h"
-#include "sun.h"
 #include "texture.h"
 
 #define EVENT_INIT               0

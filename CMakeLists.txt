@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS "-g -Og -Wno-deprecated-volatile -fno-omit-frame-pointer")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(ass_3)
+project(sand_game)
 
 add_subdirectory(libs/metal-cmake)
 add_subdirectory(shaders)
@@ -22,17 +22,18 @@ add_compile_options(-I${METAL_INCLUDE_DIRS})
 #FetchContent_MakeAvailable(glm)
 
 find_package(SDL2 CONFIG REQUIRED)
+find_package(GLM REQUIRED)
 
 file(GLOB source_files CONFIGURE_DEPENDS
         include/*.h
         src/*.cpp
     )
 
-add_executable(ass_3 
+add_executable(sand_game 
     ${source_files}
 )
 
-target_include_directories(ass_3
+target_include_directories(sand_game
     PRIVATE
     include/
     include/3rdparty
@@ -41,12 +42,13 @@ target_include_directories(ass_3
 )
 
 # Evil hackable engine
-target_compile_options(ass_3 PRIVATE -Wno-format-security)
+target_compile_options(sand_game PRIVATE -Wno-format-security)
 
-target_link_libraries(ass_3
+target_link_libraries(sand_game
     PRIVATE 
     METAL_CPP 
     ${SDL2_LIBRARIES} 
-    #glm::glm
+    ${GLM_INCLUDE_DIRS}
+    glm::glm
 )
 

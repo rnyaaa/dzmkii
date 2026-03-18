@@ -1,10 +1,5 @@
 #include <vector>
-#include <optional>
-#include <fstream>
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 #include <Metal/Metal.hpp>
 #include <simd/simd.h>
 
@@ -164,10 +159,7 @@ struct MeshData
     static MeshData UnitCube()
     {
         std::vector<Vertex> vertices(36);
-//        ._.
-//        \ |
-//         \.
-//
+
         const glm::vec3 UP(0.f, 0.f, 1.f);
         const glm::vec3 RIGHT(1.f, 0.f, 0.f);
         const glm::vec3 FORWARD(0.f, 1.f, 0.f);

@@ -4,19 +4,19 @@
 
 Camera::Camera()
 {
-    this->position = glm::vec3(10.0f, 10.0f, 10.0f);
+    this->position = glm::vec3(0.f, 0.f, 10.f);
     this->target = glm::vec3(0.0f, 0.0f, 0.0f);
-    this->up = glm::vec3(0.0, 0.0, 1.0);
-    this->forward = this->target - this->position;
-    this->right  = glm::cross(this->right, this->forward);
-    this->zoom_level = 24.0f;
+    this->up = glm::vec3(0.0, 1.0, 0.0);
+    this->forward = glm::vec3(0.0,.0, -1.0);//this->target - this->position;
+    this->right  = glm::vec3(1.0, 0.0, 0.0);//glm::cross(this->right, this->forward);
+    this->zoom_level = 1.0f;
    
     this->move_speed = 1.0f;
     this->zoom_speed = 0.9f;
     this->zoom_max   = 128.0f;
     this->zoom_min   = 6.0f;
 
-    this->ortho = false;
+    this->ortho = true;
     this->theta = 0;
     this->phi   = 0;
 
@@ -28,8 +28,8 @@ Camera::Camera()
 glm::mat4 Camera::getViewMatrix() const
 {
     return glm::lookAt(this->position, 
-                       this->position + this->forward * glm::vec3(10), 
-                       glm::vec3(0.0f, 0.0f, 1.0f)
+                    this->target, 
+                        this->up 
             );
 }
 
@@ -38,11 +38,11 @@ glm::mat4 Camera::getProjectionMatrix(glm::vec2 screen_dim) const
     if(this->ortho)
         return glm::ortho(
                 -screen_dim.x / this->zoom_level,
-                 screen_dim.x / this->zoom_level,
-                -screen_dim.y / this->zoom_level,
-                 screen_dim.y / this->zoom_level,
-                -10000.f,
-                1000.f
+                screen_dim.x / this->zoom_level,
+              -screen_dim.y / this->zoom_level,
+                  screen_dim.y / this->zoom_level,
+               -10000.f,
+                 1000.f
         );
 
     

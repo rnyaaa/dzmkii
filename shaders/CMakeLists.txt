@@ -16,21 +16,11 @@ include_directories(${SHADER_SOURCE_DIR})
 
 # Specify shader files 
 set(SHADER_FILES
-    "${SHADER_SOURCE_DIR}/terrain_shader.metal"
-    "${SHADER_SOURCE_DIR}/skyscraper.metal"
-    "${SHADER_SOURCE_DIR}/fog.metal"
-    "${SHADER_SOURCE_DIR}/boid.metal"
+    "${SHADER_SOURCE_DIR}/sand_shader.metal"
 )
 
 set(SHADER_HEADER_FILES
-    "${SHADER_SOURCE_DIR}/bsdf.hm"
-    "${SHADER_SOURCE_DIR}/headers.hm"
-    "${SHADER_SOURCE_DIR}/lighting.hm"
-    "${SHADER_SOURCE_DIR}/materials.hm"
-    "${SHADER_SOURCE_DIR}/noise.hm"
-    "${SHADER_SOURCE_DIR}/trigonometry.hm"
-    "${SHADER_SOURCE_DIR}/math.hm"
-    "${SHADER_SOURCE_DIR}/fog.hm"
+    # Add header files here when needed
 )
 
 # Check for the existence of each shader file
@@ -73,3 +63,4 @@ add_custom_target(MetalLibrary ALL DEPENDS ${METALLIB_OUTPUT}) # Ensure this tar
 
 # Debug output
 message("Shader include directory: ${SHADER_SOURCE_DIR}")
+

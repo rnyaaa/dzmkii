@@ -228,8 +228,11 @@ void DZRenderer::executeCommandQueue()
         }
         else if (command.type == DZRenderCommand::DRAW_MESH)
         {
+            
             encoder->setVertexBuffer(
                     mesh_buffers.vertex[command.mesh], 0, 1);
+
+
 
             if (mesh_buffers.index[command.mesh])
             {
@@ -240,7 +243,7 @@ void DZRenderer::executeCommandQueue()
                             mesh_buffers.index[command.mesh],
                             NS::UInteger(0)
                         );
-            }
+                }
             else
             {
                 encoder->drawPrimitives(
