@@ -131,7 +131,7 @@ vertex v2f vertexMain(
     )
 {
     v2f o;
-    float4 local_pos = vertices[vertex_id].position;
+    float4 local_pos = vertices[vertex_id].position - float4{0.5, 0.5, 0.0, 0.0};
     float4 world_pos = local_uniforms.model_matrix * local_pos;
     o.position = global_uniforms.camera.projection_matrix * global_uniforms.camera.view_matrix * world_pos;
     return o;
